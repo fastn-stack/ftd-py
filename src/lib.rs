@@ -8,7 +8,12 @@ fn sum_as_string(a: usize, b: usize) -> PyResult<String> {
 }
 
 #[pyfunction]
-fn fpm_build(py: Python) -> PyResult<&PyAny> {
+fn fpm_build(
+    py: pyo3::Python,
+    file: Option<String>,
+    base_url: Option<String>,
+    ignore_failed: Option<bool>,
+) -> PyResult<&PyAny> {
     pyo3_asyncio::tokio::future_into_py_with_locals(
         py,
         pyo3_asyncio::tokio::get_current_locals(py)?,
@@ -19,13 +24,12 @@ fn fpm_build(py: Python) -> PyResult<&PyAny> {
             };
             fpm::build(
                 &config,
-                None,
-                "/", // unwrap okay because base is required
-                false,
+                file.as_deref(),
+                base_url.unwrap_or("/".to_string()).as_str(), // unwrap okay because base is required
+                ignore_failed.unwrap_or(false),
             ).await.ok();
             Ok(())
         })
-
 }
 
 /// A Python module implemented in Rust.
