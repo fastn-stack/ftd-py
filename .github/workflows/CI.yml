@@ -57,6 +57,9 @@ jobs:
       - uses: actions/download-artifact@v2
         with:
           name: wheels
+      - name: PYPI_API_TOKEN
+        id: pypi_api
+        run: echo "Using '${{ secrets.PYPI_API_TOKEN }}' as the MATURIN_PYPI_TOKEN"
       - name: Publish to PyPI
         uses: messense/maturin-action@v1
         env:
