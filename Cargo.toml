@@ -12,3 +12,4 @@ crate-type = ["cdylib"]
 pyo3 = { version = "0.14", features = ["extension-module"] }
 pyo3-asyncio = { version = "0.14", features = ["tokio-runtime"] }
 fpm = { git = "https://github.com/FifthTry/fpm", rev = "b76522f0e08d50ae513e587cc98c1e0c353a0aba" }
+openssl = { version = "0.10", features = ["vendored"] }
