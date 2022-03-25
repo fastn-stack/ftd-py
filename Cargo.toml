@@ -9,6 +9,6 @@ name = "ftd"
 crate-type = ["cdylib"]
 
 [dependencies]
-pyo3 = { version = "0.16.1", features = ["extension-module"] }
-pyo3-asyncio = { version = "0.16", features = ["tokio-runtime"] }
+pyo3 = { version = "0.14", features = ["extension-module"] }
+pyo3-asyncio = { version = "0.14", features = ["tokio-runtime"] }
 fpm = { git = "https://github.com/FifthTry/fpm", rev = "b76522f0e08d50ae513e587cc98c1e0c353a0aba" }
