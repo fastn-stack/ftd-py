@@ -1,8 +1,17 @@
 name: CI
 
 on:
-  push:
-  pull_request:
+  workflow_dispatch:
+    inputs:
+      releaseTag:
+        description: 'Release Tag'
+        required: true
+      productionRelease:
+        type: boolean
+        description: Mark release as production ready
+      pypiRelease:
+        type: boolean
+        description: Mark release as PyPI ready
 
 jobs:
   linux:
@@ -48,18 +57,32 @@ jobs:
         name: wheels
         path: dist
 
-  release:
-    name: Release
+  create-release:
+    name: Create github tag and release
     runs-on: ubuntu-latest
-    if: "startsWith(github.ref, 'refs/tags/')"
     needs: [ macos, windows, linux ]
     steps:
       - uses: actions/download-artifact@v2
         with:
           name: wheels
-      - name: PYPI_API_TOKEN
-        id: pypi_api
-        run: echo "Using '${{ secrets.PYPI_API_TOKEN }}' as the MATURIN_PYPI_TOKEN"
+          path: ~/download
+      - uses: ncipollo/release-action@v1
+        with:
+          artifacts: "~/download"
+          generateReleaseNotes: true
+          token: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ github.event.inputs.releaseTag }}
+          prerelease: ${{ github.event.inputs.productionRelease && github.event.inputs.productionRelease == 'false' }}
+
+  release:
+    name: PyPI Release
+    runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.pypiRelease && github.event.inputs.pypiRelease == 'true' }}
+    needs: [ create-release ]
+    steps:
+      - uses: actions/download-artifact@v2
+        with:
+          name: wheels
       - name: Publish to PyPI
         uses: messense/maturin-action@v1
         env:
