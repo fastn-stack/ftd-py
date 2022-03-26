@@ -23,7 +23,7 @@ fn fpm_build(
         fpm::build(
             &config,
             file.as_deref(),
-            base_url.unwrap_or("/".to_string()).as_str(), // unwrap okay because base is required
+            base_url.unwrap_or_else(|| "/".to_string()).as_str(), // unwrap okay because base is required
             ignore_failed.unwrap_or(false),
         )
         .await
