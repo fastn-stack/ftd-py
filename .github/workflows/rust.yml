@@ -1,0 +1,53 @@
+name: Rust Checks
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+     - '**.rs'
+     - 'Cargo.*'
+     - 'rust-toolchain'
+  pull_request:
+    branches: [ main ]
+    paths:
+     - '**.rs'
+     - 'Cargo.*'
+     - 'rust-toolchain'
+jobs:
+  everything:
+    name: Rust Checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          override: true
+          components: rustfmt, clippy
+      - uses: actions/cache@v2  # there is also https://github.com/Swatinem/rust-cache
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+      - name: Run cargo fmt
+        id: fmt
+        continue-on-error: true
+        uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: --all -- --check
+      - name: Run cargo clippy
+        id: clippy
+        continue-on-error: true
+        uses: actions-rs/cargo@v1
+        with:
+          command: clippy
+          args: -- -D warnings
+      - name: Check if code is properly formatted
+        if: steps.fmt.outcome != 'success'
+        run: exit 1
+      - name: Check if clippy is happy
+        if: steps.clippy.outcome != 'success'
+        run: exit 1

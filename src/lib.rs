@@ -1,4 +1,3 @@
-
 use pyo3::prelude::*;
 
 /// Formats the sum of two numbers as string.
@@ -14,21 +13,23 @@ fn fpm_build(
     base_url: Option<String>,
     ignore_failed: Option<bool>,
 ) -> PyResult<&PyAny> {
-    pyo3_asyncio::tokio::future_into_py(
-        py,
-        async move {
-            let config = match fpm::Config::read().await {
-                Ok(c) => c,
-                _ => {return  Ok(Python::with_gil(|py| py.None()));}
-            };
-            fpm::build(
-                &config,
-                file.as_deref(),
-                base_url.unwrap_or("/".to_string()).as_str(), // unwrap okay because base is required
-                ignore_failed.unwrap_or(false),
-            ).await.ok();
-            Ok(Python::with_gil(|py| py.None()))
-        })
+    pyo3_asyncio::tokio::future_into_py(py, async move {
+        let config = match fpm::Config::read().await {
+            Ok(c) => c,
+            _ => {
+                return Ok(Python::with_gil(|py| py.None()));
+            }
+        };
+        fpm::build(
+            &config,
+            file.as_deref(),
+            base_url.unwrap_or("/".to_string()).as_str(), // unwrap okay because base is required
+            ignore_failed.unwrap_or(false),
+        )
+        .await
+        .ok();
+        Ok(Python::with_gil(|py| py.None()))
+    })
 }
 
 /// A Python module implemented in Rust.
