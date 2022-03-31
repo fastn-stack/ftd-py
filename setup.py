@@ -5,7 +5,7 @@ with open("README.md") as f:
 
 setup(
     author="Amit Upadhyay",
-    author_email="amitu@fifthtry.com",
+    author_email="upadhyay@gmail.com",
     description="A PyPI package to use FTD",
     long_description=long_description,
     long_description_content_type="text/markdown",
