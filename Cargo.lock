@@ -745,6 +745,7 @@ dependencies = [
 [[package]]
 name = "fpm"
 version = "0.1.10"
+source = "git+https://github.com/FifthTry/fpm?rev=0a21857#0a21857b478bb4fbbd6f1810a4d50cddea5bbc1f"
 dependencies = [
  "antidote",
  "anyhow",
