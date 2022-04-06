@@ -802,7 +802,7 @@ dependencies = [
 
 [[package]]
 name = "ftd-py"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "fpm",
  "openssl",
