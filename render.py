@@ -22,12 +22,11 @@ import asyncio
 #     d = await parse("foo.ftd", message="hello world", n=10)
 #     await d.render()
 
+
 async def build():
     data = {"message": "hello world", "n": 10}
     data = json.dumps(data)
     await ftd.render("foo.ftd", data)
-
-
 
 
 loop = asyncio.get_event_loop()
