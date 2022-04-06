@@ -7,7 +7,7 @@ fn sum_as_string(a: usize, b: usize) -> PyResult<String> {
 }
 
 #[pyfunction]
-fn render<'a>(py: pyo3::Python<'a>, file: String, data: String) -> PyResult<&'a PyAny> {
+fn render(py: pyo3::Python, file: String, data: String) -> PyResult<&PyAny> {
     // dbg!(&data, data.get_type(), data.get_type_ptr());
     // for k in data.iter()? {
     //     let g = k?;
