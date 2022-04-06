@@ -1,0 +1,9 @@
+-- string message:
+$processor$: get-data
+
+-- integer n:
+$processor$: get-data
+
+-- ftd.text: $message
+
+-- ftd.integer: $n

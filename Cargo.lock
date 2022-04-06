@@ -745,7 +745,6 @@ dependencies = [
 [[package]]
 name = "fpm"
 version = "0.1.10"
-source = "git+https://github.com/FifthTry/fpm?rev=b76522f0e08d50ae513e587cc98c1e0c353a0aba#b76522f0e08d50ae513e587cc98c1e0c353a0aba"
 dependencies = [
  "antidote",
  "anyhow",
@@ -783,7 +782,7 @@ dependencies = [
 [[package]]
 name = "ftd"
 version = "0.1.18"
-source = "git+https://github.com/FifthTry/ftd?rev=6dccfa2#6dccfa26b40416684a19538cd3830e9ed8567b06"
+source = "git+https://github.com/FifthTry/ftd?rev=49c5062#49c5062a7a9067dd11e4ee8ba42605704c055d5e"
 dependencies = [
  "comrak",
  "css-color-parser",
@@ -808,6 +807,9 @@ dependencies = [
  "openssl",
  "pyo3",
  "pyo3-asyncio",
+ "serde",
+ "serde_derive",
+ "serde_json",
 ]
 
 [[package]]
