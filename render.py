@@ -26,9 +26,10 @@ import asyncio
 async def render():
     data = {"message": "hello world", "n": 10}
     data = json.dumps(data)
-    await ftd.render("foo.ftd", data)
+    return await ftd.render("foo.ftd", data)
 
 
 loop = asyncio.get_event_loop()
-loop.run_until_complete(render())
+res = loop.run_until_complete(render())
+print(res)
 loop.close()

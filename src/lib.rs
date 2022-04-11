@@ -32,7 +32,7 @@ fn render(py: pyo3::Python, file: String, data: String) -> PyResult<&PyAny> {
         fpm::build(&config, Some(file.as_str()), "/", false)
             .await
             .ok();
-        Ok(Python::with_gil(|py| py.None()))
+        Ok(Python::with_gil(|py| config.package.name.into_py(py)))
     })
 }
 
