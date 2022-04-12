@@ -14,6 +14,6 @@ setup(
     project_urls={
         "Bug Tracker": "https://github.com/FifthTry/ftd-py/issues",
     },
-    python_requires='>=3.6',
-    version='0.1.2',
+    python_requires=">=3.6",
+    version="0.1.2",
 )

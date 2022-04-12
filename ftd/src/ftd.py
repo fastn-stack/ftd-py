@@ -1,6 +1,7 @@
 import ftd_sys
 import json
 
+
 class Document:
     def __init__(self, f, **data):
         self.f = f
@@ -15,4 +16,3 @@ class Document:
 
 def parse(f, **data):
     return Document(f, **data)
-
