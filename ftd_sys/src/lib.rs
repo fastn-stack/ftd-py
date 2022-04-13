@@ -21,18 +21,21 @@ fn render(py: pyo3::Python, file: String, data: String) -> PyResult<&PyAny> {
                     return Ok(Python::with_gil(|py| py.None()));
                 }
             };
-            config.extra_data = match serde_json::from_str(data.as_str()) {
-                Ok(c) => c,
-                _ => {
-                    return Ok(Python::with_gil(|py| py.None()));
-                }
-            };
+            if config.attach_data_string(data.as_str()).is_err() {
+                return Ok(Python::with_gil(|py| py.None()));
+            }
             config
         };
-        fpm::build(&config, Some(file.as_str()), "/", false)
-            .await
-            .ok();
-        Ok(Python::with_gil(|py| config.package.name.into_py(py)))
+        let data = match fpm::render(&config, file.as_str(), "/").await {
+            Ok(data) => data,
+            _ => {
+                return Ok(Python::with_gil(|py| py.None()));
+            }
+        };
+        // fpm::build(&config, Some(file.as_str()), "/", false)
+        //     .await
+        //     .ok();
+        Ok(Python::with_gil(|py| data.into_py(py)))
     })
 }
 

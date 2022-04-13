@@ -24,9 +24,9 @@ import asyncio
 
 
 async def render():
-    data = {"message": "hello world", "n": 10}
+    data = {"asd": "hello world!!!", "n": 10, "kv2": {"key": "asd2", "value": "something2"}}
     data = json.dumps(data)
-    return await ftd_sys.render("foo.ftd", data)
+    return await ftd_sys.render("foo2", data)
 
 
 loop = asyncio.get_event_loop()

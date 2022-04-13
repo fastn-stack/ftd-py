@@ -20,16 +20,17 @@ loop.close()
 
 2. `render`: This can be used to build a single ftd file and also inject the 
    variable data for processor of type `get-data`
-   
+
 ```python
 import json
 import ftd
 import asyncio
 
+
 async def render():
-    data = {"message": "hello world", "n": 10}
-    data = json.dumps(data)
-    await ftd.render("foo.ftd", data)
+   data = {"message": "hello world", "n": 10}
+   data = json.dumps(data)
+   await examples.render("foo.ftd", data)
 
 
 loop = asyncio.get_event_loop()

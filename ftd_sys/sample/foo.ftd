@@ -1,9 +1,42 @@
+-- record key-value:
+string key:
+string value:
+
+-- key-value kv:
+$processor$: get-data
+
+{
+    "key": "asd",
+    "value": "something"
+}
+
+-- key-value kv2:
+$processor$: get-data
+
+
 -- string message:
 $processor$: get-data
+key: asd
+
+-- string message2: Hello world
+$processor$: get-data
+
 
 -- integer n:
 $processor$: get-data
 
+80
+
 -- ftd.text: $message
 
+-- ftd.text: $message2
+
 -- ftd.integer: $n
+
+-- ftd.text: $kv.key
+
+-- ftd.text: $kv.value
+
+-- ftd.text: $kv2.key
+
+-- ftd.text: $kv2.value
