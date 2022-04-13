@@ -12,7 +12,8 @@ class Document:
         all_data = self.data
         all_data.update(data)
         all_data = json.dumps(all_data)
-        await ftd_sys.render(self.f, all_data)
+        print("render", self.f, all_data)
+        return await ftd_sys.render(self.f, all_data)
 
 
 def parse(f: str, **data) -> Document:

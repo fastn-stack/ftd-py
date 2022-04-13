@@ -3,7 +3,7 @@ import asyncio
 
 
 async def render():
-    d = ftd.parse("foo.ftd", message="FTD renderer says hello world", n=10)
+    d = ftd.parse("foo", message="FTD renderer says hello world", n=10)
     return await d.render(n=12)
 
 
