@@ -9,7 +9,7 @@ setup(
     description="A PyPI package to use FTD",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    name="ftd-sys",
+    name="ftd_sys",
     url="https://github.com/FifthTry/ftd-py",
     project_urls={
         "Bug Tracker": "https://github.com/FifthTry/ftd-py/issues",

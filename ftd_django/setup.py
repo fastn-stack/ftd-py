@@ -1,4 +1,4 @@
-from setuptools import setup, find_packages
+from setuptools import setup
 
 with open("README.md") as f:
     long_description = f.read()
@@ -6,17 +6,15 @@ with open("README.md") as f:
 setup(
     author="Amit Upadhyay",
     author_email="upadhyay@gmail.com",
-    description="Python Binding For FTD",
+    description="Helper for using `ftd` as template language in your django project.",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    name="ftd",
+    name="ftd-django",
     url="https://github.com/FifthTry/ftd-py",
     project_urls={
         "Bug Tracker": "https://github.com/FifthTry/ftd-py/issues",
     },
     python_requires=">=3.6",
-    version="0.1.2",
-    install_requires=['ftd_sys'],
-    package_dir={"": "src"},
-    packages=find_packages(where="src"),
+    version="0.1.0",
+    install_requires=['ftd']
 )

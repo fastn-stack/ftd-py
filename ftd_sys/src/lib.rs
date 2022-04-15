@@ -9,9 +9,10 @@ fn render(py: pyo3::Python, root: Option<String>, file: String, data: String) ->
     // }
     pyo3_asyncio::tokio::future_into_py(py, async move {
         let config = {
-            let mut config = match fpm::Config::read(root).await {
+            let mut config = match fpm::Config::read(root.clone()).await {
                 Ok(c) => c,
-                _ => {
+                Err(e) => {
+                    eprintln!("{:?}", e);
                     return Ok(Python::with_gil(|py| py.None()));
                 }
             };
@@ -20,13 +21,15 @@ fn render(py: pyo3::Python, root: Option<String>, file: String, data: String) ->
             }
             config
         };
-        let data = match fpm::render(&config, file.as_str(), "/").await {
+        let html = match fpm::render(&config, file.as_str(), "/").await {
             Ok(data) => data,
-            _ => {
+            Err(e) => {
+                eprintln!("{:?}", e);
                 return Ok(Python::with_gil(|py| py.None()));
             }
         };
-        Ok(Python::with_gil(|py| data.into_py(py)))
+        dbg!(root, file, data, &html);
+        Ok(Python::with_gil(|py| html.into_py(py)))
     })
 }
 
