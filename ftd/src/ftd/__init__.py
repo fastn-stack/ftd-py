@@ -41,4 +41,5 @@ async def render(id: str, root: Optional[str] = None, **data) -> str:
 def render_sync(id: str, root: Optional[str] = None, **data) -> str:
     loop = asyncio.get_event_loop()
     res = loop.run_until_complete(render(id, root, **data))
+    loop.close()
     return res
