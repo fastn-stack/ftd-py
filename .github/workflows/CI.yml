@@ -16,6 +16,9 @@ on:
 jobs:
   linux:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./ftd_sys
     steps:
     - uses: actions/checkout@v2
     - uses: messense/maturin-action@v1
@@ -31,6 +34,9 @@ jobs:
 
   windows:
     runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: ./ftd_sys
     steps:
     - uses: actions/checkout@v2
     - uses: messense/maturin-action@v1
@@ -45,6 +51,9 @@ jobs:
 
   macos:
     runs-on: macos-latest
+    defaults:
+      run:
+        working-directory: ./ftd_sys
     steps:
     - uses: actions/checkout@v2
     - uses: messense/maturin-action@v1
