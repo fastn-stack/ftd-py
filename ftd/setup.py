@@ -16,7 +16,7 @@ setup(
     },
     python_requires=">=3.6",
     version="0.1.2",
-    install_requires=["ftd_sys==0.1.0"],
+    install_requires=["ftd_sys>=0.1.0"],
     package_dir={"": "src"},
     packages=find_packages(where="src"),
 )
