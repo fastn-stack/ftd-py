@@ -27,8 +27,6 @@ class TemplateBackend(BaseEngine):
     def __init__(self, params):
         params = params.copy()
         params.pop("OPTIONS")
-        # libraries = options.get("libraries", {})
-        # options["libraries"] = self.get_templatetag_libraries(libraries)
         super().__init__(params)
 
     # noinspection PyMethodMayBeStatic
