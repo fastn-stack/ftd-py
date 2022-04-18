@@ -14,7 +14,7 @@ $processor$: get-data
 $processor$: get-data
 key: asd
 
-Default Message
+"Default Message"
 
 -- integer n:
 $processor$: get-data

@@ -39,7 +39,8 @@ async def render(id: str, root: Optional[str] = None, **data) -> str:
 
 # noinspection PyShadowingBuiltins
 def render_sync(id: str, root: Optional[str] = None, **data) -> str:
-    loop = asyncio.get_event_loop()
-    res = loop.run_until_complete(render(id, root, **data))
-    loop.close()
+    # loop = asyncio.get_event_loop()
+    # res = loop.run_until_complete(render(id, root, **data))
+    # loop.close()
+    res = asyncio.run(render(id, root, **data))
     return res

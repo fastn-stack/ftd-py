@@ -7,7 +7,6 @@ import ftd
 from ftd_django import helpers
 
 
-(BASE, FPM_FOLDER) = helpers.validate_settings()
 
 
 class Template:
@@ -18,13 +17,23 @@ class Template:
         if context is None:
             context = {}
         if request is not None:
-            context["request"] = request
-            context["csrf_token"] = csrf_token_lazy(request)
+            # context["request"] = request
+            context["csrf_token"] = str(csrf_token_lazy(request))
+        del context["view"]
         # noinspection PyUnresolvedReferences
-        return ftd.render_sync(BASE, FPM_FOLDER, self.template, context)
+        # return ftd.render_sync(BASE, FPM_FOLDER, self.template, context)
+        (BASE, FPM_FOLDER) = helpers.validate_settings()
+        return ftd.render_sync(FPM_FOLDER, self.template, **context)
 
 
 class TemplateBackend(BaseEngine):
+    def __init__(self, params):
+        params = params.copy()
+        params.pop("OPTIONS")
+        # libraries = options.get("libraries", {})
+        # options["libraries"] = self.get_templatetag_libraries(libraries)
+        super().__init__(params)
+
     # noinspection PyMethodMayBeStatic
     def get_template(self, template_name: str) -> Template:
         if not (template_name.startswith("/") and template_name.endswith("/")):

@@ -11,7 +11,7 @@ crate-type = ["cdylib"]
 [dependencies]
 pyo3 = { version = "0.14", features = ["extension-module"] }
 pyo3-asyncio = { version = "0.14", features = ["tokio-runtime"] }
-fpm = { git = "https://github.com/FifthTry/fpm", rev = "0b4bff9" }
+fpm = { git = "https://github.com/FifthTry/fpm", rev = "9dd38c2" }
 # fpm = { path = "../../fpm" }
 serde = { version = "1", features = ["derive"] }
 serde_derive = "1.0"

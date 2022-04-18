@@ -1,4 +1,3 @@
-from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 
 from typing import Optional
@@ -24,21 +23,24 @@ def get_base(base: str, debug_base: Optional[str], debug: bool) -> str:
 
 
 def validate_settings() -> (str, str):
+    from django.conf import settings
+
     t = None
     for t_ in settings.TEMPLATES:
-        if t["BACKEND"] != BACKEND_NAME:
+        if t_["BACKEND"] != BACKEND_NAME:
             continue
         if t:
             raise ImproperlyConfigured('"%s" configured more than once' % BACKEND_NAME)
         t = t_
 
+    if t.get("APP_DIRS"):
+        raise ImproperlyConfigured("APP_DIRS is not supported, please set it to False")
+
     dlen = len(t["DIRS"])
     if dlen != 1:
         raise ImproperlyConfigured("DIRS must contain a single entry, found %s" % dlen)
-    if t.get("APP_DIRS"):
-        raise ImproperlyConfigured("APP_DIRS is not supported, please set it to False")
-    options = t.get("OPTIONS", {})
 
+    options = t.get("OPTIONS", {})
     folder = t["DIRS"][0]
 
     if not options:
