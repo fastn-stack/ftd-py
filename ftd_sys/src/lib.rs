@@ -1,7 +1,13 @@
 use pyo3::prelude::*;
 
 #[pyfunction]
-fn render(py: pyo3::Python, root: Option<String>, file: String, data: String) -> PyResult<&PyAny> {
+fn render(
+    py: pyo3::Python,
+    root: Option<String>,
+    file: String,
+    base: String,
+    data: String,
+) -> PyResult<&PyAny> {
     // dbg!(&data, data.get_type(), data.get_type_ptr());
     // for k in data.iter()? {
     //     let g = k?;
@@ -21,7 +27,7 @@ fn render(py: pyo3::Python, root: Option<String>, file: String, data: String) ->
             }
             config
         };
-        let html = match fpm::render(&config, file.as_str(), "/").await {
+        let html = match fpm::render(&config, file.as_str(), base.as_str()).await {
             Ok(data) => data,
             Err(e) => {
                 eprintln!("{:?}", e);
