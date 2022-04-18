@@ -16,16 +16,13 @@ on:
 jobs:
   linux:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./ftd_sys
     steps:
     - uses: actions/checkout@v2
     - uses: messense/maturin-action@v1
       with:
         manylinux: auto
         command: build
-        args: --release -o dist
+        args: --manifest-path ftd_sys/Cargo.toml --release -o dist
     - name: Upload wheels
       uses: actions/upload-artifact@v2
       with:
@@ -34,15 +31,12 @@ jobs:
 
   windows:
     runs-on: windows-latest
-    defaults:
-      run:
-        working-directory: ./ftd_sys
     steps:
     - uses: actions/checkout@v2
     - uses: messense/maturin-action@v1
       with:
         command: build
-        args: --release --no-sdist -o dist
+        args: --manifest-path ftd_sys/Cargo.toml --release --no-sdist -o dist
     - name: Upload wheels
       uses: actions/upload-artifact@v2
       with:
@@ -51,15 +45,12 @@ jobs:
 
   macos:
     runs-on: macos-latest
-    defaults:
-      run:
-        working-directory: ./ftd_sys
     steps:
     - uses: actions/checkout@v2
     - uses: messense/maturin-action@v1
       with:
         command: build
-        args: --release --no-sdist -o dist --universal2
+        args: --manifest-path ftd_sys/Cargo.toml --release --no-sdist -o dist --universal2
     - name: Upload wheels
       uses: actions/upload-artifact@v2
       with:

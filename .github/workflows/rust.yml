@@ -17,9 +17,6 @@ jobs:
   everything:
     name: Rust Checks
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./ftd_sys
     steps:
       - uses: actions/checkout@v2
       - uses: actions-rs/toolchain@v1
@@ -40,14 +37,14 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: fmt
-          args: --all -- --check
+          args: --manifest-path ftd_sys/Cargo.toml --all -- --check
       - name: Run cargo clippy
         id: clippy
         continue-on-error: true
         uses: actions-rs/cargo@v1
         with:
           command: clippy
-          args: -- -D warnings
+          args: --manifest-path ftd_sys/Cargo.toml -- -D warnings
       - name: Check if code is properly formatted
         if: steps.fmt.outcome != 'success'
         run: exit 1
