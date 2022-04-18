@@ -17,6 +17,9 @@ jobs:
   everything:
     name: Rust Checks
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./ftd_sys
     steps:
       - uses: actions/checkout@v2
       - uses: actions-rs/toolchain@v1
