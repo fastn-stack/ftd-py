@@ -7,8 +7,6 @@ import ftd
 from ftd_django import helpers
 
 
-
-
 class Template:
     def __init__(self, template):
         self.template = template
@@ -21,7 +19,6 @@ class Template:
             context["csrf_token"] = str(csrf_token_lazy(request))
         del context["view"]
         # noinspection PyUnresolvedReferences
-        # return ftd.render_sync(BASE, FPM_FOLDER, self.template, context)
         (BASE, FPM_FOLDER) = helpers.validate_settings()
         return ftd.render_sync(FPM_FOLDER, self.template, BASE, **context)
 
@@ -39,6 +36,3 @@ class TemplateBackend(BaseEngine):
         if not (template_name.startswith("/") and template_name.endswith("/")):
             raise TemplateDoesNotExist()
         return Template(template_name)
-
-
-

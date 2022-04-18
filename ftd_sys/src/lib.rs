@@ -5,7 +5,7 @@ fn render(
     py: pyo3::Python,
     root: Option<String>,
     file: String,
-    base: String,
+    base_url: String,
     data: String,
 ) -> PyResult<&PyAny> {
     // dbg!(&data, data.get_type(), data.get_type_ptr());
@@ -27,7 +27,7 @@ fn render(
             }
             config
         };
-        let html = match fpm::render(&config, file.as_str(), base.as_str()).await {
+        let html = match fpm::render(&config, file.as_str(), base_url.as_str()).await {
             Ok(data) => data,
             Err(e) => {
                 eprintln!("{:?}", e);

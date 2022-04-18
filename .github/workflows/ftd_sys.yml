@@ -1,4 +1,4 @@
-name: CI
+name: ftd_sys CI
 
 on:
   workflow_dispatch:

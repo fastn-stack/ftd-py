@@ -19,7 +19,9 @@ def get_base(base: str, debug_base: Optional[str], debug: bool) -> str:
     # if debug_base is anything else, return debug_base
     if isinstance(debug_base, str):
         return debug_base
-    raise ImproperlyConfigured('OPTIONS["debug-base"] must be False or str, found: %s', debug_base)
+    raise ImproperlyConfigured(
+        'OPTIONS["debug-base"] must be False or str, found: %s', debug_base
+    )
 
 
 def validate_settings() -> (str, str):
