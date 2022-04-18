@@ -1,13 +1,13 @@
 use pyo3::prelude::*;
 
-/// Formats the sum of two numbers as string.
 #[pyfunction]
-fn sum_as_string(a: usize, b: usize) -> PyResult<String> {
-    Ok((a + b).to_string())
-}
-
-#[pyfunction]
-fn render(py: pyo3::Python, file: String, data: String) -> PyResult<&PyAny> {
+fn render(
+    py: pyo3::Python,
+    root: Option<String>,
+    file: String,
+    base_url: String,
+    data: String,
+) -> PyResult<&PyAny> {
     // dbg!(&data, data.get_type(), data.get_type_ptr());
     // for k in data.iter()? {
     //     let g = k?;
@@ -15,36 +15,39 @@ fn render(py: pyo3::Python, file: String, data: String) -> PyResult<&PyAny> {
     // }
     pyo3_asyncio::tokio::future_into_py(py, async move {
         let config = {
-            let mut config = match fpm::Config::read().await {
+            let mut config = match fpm::Config::read(root.clone()).await {
                 Ok(c) => c,
-                _ => {
+                Err(e) => {
+                    eprintln!("{:?}", e);
                     return Ok(Python::with_gil(|py| py.None()));
                 }
             };
-            config.extra_data = match serde_json::from_str(data.as_str()) {
-                Ok(c) => c,
-                _ => {
-                    return Ok(Python::with_gil(|py| py.None()));
-                }
-            };
+            if config.attach_data_string(data.as_str()).is_err() {
+                return Ok(Python::with_gil(|py| py.None()));
+            }
             config
         };
-        fpm::build(&config, Some(file.as_str()), "/", false)
-            .await
-            .ok();
-        Ok(Python::with_gil(|py| config.package.name.into_py(py)))
+        let html = match fpm::render(&config, file.as_str(), base_url.as_str()).await {
+            Ok(data) => data,
+            Err(e) => {
+                eprintln!("{:?}", e);
+                return Ok(Python::with_gil(|py| py.None()));
+            }
+        };
+        Ok(Python::with_gil(|py| html.into_py(py)))
     })
 }
 
 #[pyfunction]
 fn fpm_build(
     py: pyo3::Python,
+    root: Option<String>,
     file: Option<String>,
     base_url: Option<String>,
     ignore_failed: Option<bool>,
 ) -> PyResult<&PyAny> {
     pyo3_asyncio::tokio::future_into_py(py, async move {
-        let config = match fpm::Config::read().await {
+        let config = match fpm::Config::read(root).await {
             Ok(c) => c,
             _ => {
                 return Ok(Python::with_gil(|py| py.None()));
@@ -62,23 +65,10 @@ fn fpm_build(
     })
 }
 
-/*#[pyfunction]
-fn parse(
-    filename: &str,
-    data: std::collections::BTreeMap<String, String>,
-) -> PyResult<std::collections::BTreeMap<String, String>> {
-    Ok(File {
-        filename: filename.to_string(),
-        data,
-    })
-}*/
-
 /// A Python module implemented in Rust.
 #[pymodule]
-fn ftd(_py: Python, m: &PyModule) -> PyResult<()> {
-    m.add_function(wrap_pyfunction!(sum_as_string, m)?)?;
+fn ftd_sys(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(fpm_build, m)?)?;
-    // m.add_function(wrap_pyfunction!(parse, m)?)?;
     m.add_function(wrap_pyfunction!(render, m)?)?;
     Ok(())
 }

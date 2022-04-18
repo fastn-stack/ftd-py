@@ -37,14 +37,14 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: fmt
-          args: --all -- --check
+          args: --manifest-path ftd_sys/Cargo.toml --all -- --check
       - name: Run cargo clippy
         id: clippy
         continue-on-error: true
         uses: actions-rs/cargo@v1
         with:
           command: clippy
-          args: -- -D warnings
+          args: --manifest-path ftd_sys/Cargo.toml -- -D warnings
       - name: Check if code is properly formatted
         if: steps.fmt.outcome != 'success'
         run: exit 1

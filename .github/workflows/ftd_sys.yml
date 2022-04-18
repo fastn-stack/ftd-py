@@ -1,4 +1,4 @@
-name: CI
+name: ftd_sys CI
 
 on:
   workflow_dispatch:
@@ -22,7 +22,7 @@ jobs:
       with:
         manylinux: auto
         command: build
-        args: --release -o dist
+        args: --manifest-path ftd_sys/Cargo.toml --release -o dist
     - name: Upload wheels
       uses: actions/upload-artifact@v2
       with:
@@ -36,7 +36,7 @@ jobs:
     - uses: messense/maturin-action@v1
       with:
         command: build
-        args: --release --no-sdist -o dist
+        args: --manifest-path ftd_sys/Cargo.toml --release --no-sdist -o dist
     - name: Upload wheels
       uses: actions/upload-artifact@v2
       with:
@@ -50,7 +50,7 @@ jobs:
     - uses: messense/maturin-action@v1
       with:
         command: build
-        args: --release --no-sdist -o dist --universal2
+        args: --manifest-path ftd_sys/Cargo.toml --release --no-sdist -o dist --universal2
     - name: Upload wheels
       uses: actions/upload-artifact@v2
       with:
