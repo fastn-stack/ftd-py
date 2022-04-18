@@ -16,5 +16,5 @@ setup(
     },
     python_requires=">=3.6",
     version="0.1.0",
-    install_requires=["ftd"],
+    install_requires=["ftd>=0.1.2"],
 )
