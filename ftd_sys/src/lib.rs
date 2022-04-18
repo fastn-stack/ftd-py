@@ -28,7 +28,6 @@ fn render(py: pyo3::Python, root: Option<String>, file: String, data: String) ->
                 return Ok(Python::with_gil(|py| py.None()));
             }
         };
-        dbg!(root, file, data, &html);
         Ok(Python::with_gil(|py| html.into_py(py)))
     })
 }

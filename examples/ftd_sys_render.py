@@ -5,9 +5,9 @@ import asyncio
 
 
 async def render():
-    data = {"asd": "hello world!!!", "n": 10, "kv2": {"key": "asd2", "value": "something2"}}
+    data = {"asd": "hello world!!!", "n": 14}
     data = json.dumps(data)
-    return await ftd_sys.render("../sample", "/", data)
+    return await ftd_sys.render("../sample", "/foo/", data)
 
 
 loop = asyncio.get_event_loop()
