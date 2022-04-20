@@ -1,3 +1,5 @@
+-- import: sample/assets as assets
+
 -- record key-value:
 caption key:
 string value:
@@ -28,3 +30,6 @@ $processor$: get-data
 -- ftd.text: $kv.key
 
 -- ftd.text: $kv.value
+
+-- ftd.image:
+src: $assets.files.1.jpg
