@@ -7,7 +7,7 @@ from os.path import abspath, dirname, join, normcase, sep
 BACKEND_NAME = "ftd_django.TemplateBackend"
 
 
-def get_base(base: str, debug_base: Optional[str], debug: bool) -> str:
+def _get_base(base: str, debug_base: Optional[str], debug: bool) -> str:
     # if in prod mode, use base
     if not debug:
         return base
@@ -51,7 +51,7 @@ def validate_settings() -> (str, str):
         return ("/", folder)
 
     return (
-        get_base(options.get("base", "/"), options.get("debug-base"), settings.DEBUG),
+        _get_base(options.get("base", "/"), options.get("debug-base"), settings.DEBUG),
         folder,
     )
 
