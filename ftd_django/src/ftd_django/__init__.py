@@ -27,7 +27,6 @@ class Template:
         del context["view"]
         # noinspection PyUnresolvedReferences
         (BASE, FPM_FOLDER) = helpers.validate_settings()
-        print("render", self.template)
         return ftd.render_sync(FPM_FOLDER, self.template, BASE, **context)
 
 
