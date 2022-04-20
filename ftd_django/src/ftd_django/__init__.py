@@ -2,6 +2,12 @@ from django.template.backends.base import BaseEngine
 from django.template.backends.utils import csrf_input_lazy, csrf_token_lazy
 from django.template import TemplateDoesNotExist
 from django.core.exceptions import ImproperlyConfigured
+from django.urls import re_path
+from django.http import FileResponse
+from django.utils.http import http_date
+
+import mimetypes
+import posixpath
 
 import ftd
 from ftd_django import helpers
@@ -34,3 +40,28 @@ class TemplateBackend(BaseEngine):
         if not (template_name.startswith("/") and template_name.endswith("/")):
             raise TemplateDoesNotExist()
         return Template(template_name)
+
+
+def _serve(f):
+    content_type, encoding = mimetypes.guess_type(str(f))
+    content_type = content_type or "application/octet-stream"
+
+    response = FileResponse(fullpath.open("rb"), content_type=content_type)
+    response.headers["Last-Modified"] = http_date(statobj.st_mtime)
+    if encoding:
+        response.headers["Content-Encoding"] = encoding
+    return response
+
+
+def static():
+    # noinspection PyUnresolvedReferences
+    (BASE, FPM_FOLDER) = helpers.validate_settings()
+
+    def view(_, path):
+        path = posixpath.normpath(path)
+        fullpath = Path(safe_join(FPM_FOLDER, path))
+        if fullpath.is_dir():
+            return _serve(fullpath.join("index.html"))
+        _serve(fullpath)
+
+    return [re_path(r"^%s(?P<path>.*)$" % re.escape(BASE.lstrip("/")), view)]
