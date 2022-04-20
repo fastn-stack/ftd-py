@@ -76,9 +76,9 @@ def safe_join(base, *paths):
     #  b) The final path must be the same as the base path.
     #  c) The base path must be the most root path (meaning either "/" or "C:\\")
     if (
-            not normcase(final_path).startswith(normcase(base_path + sep))
-            and normcase(final_path) != normcase(base_path)
-            and dirname(normcase(base_path)) != normcase(base_path)
+        not normcase(final_path).startswith(normcase(base_path + sep))
+        and normcase(final_path) != normcase(base_path)
+        and dirname(normcase(base_path)) != normcase(base_path)
     ):
         raise SuspiciousFileOperation(
             "The joined path ({}) is located outside of the base path "
