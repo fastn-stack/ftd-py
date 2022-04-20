@@ -16,8 +16,9 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from app import views
+import ftd_django
 
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("", views.IndexView.as_view()),
-]
+] + ftd_django.static()

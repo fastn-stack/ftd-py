@@ -1,10 +1,11 @@
 from django.template.backends.base import BaseEngine
-from django.template.backends.utils import csrf_input_lazy, csrf_token_lazy
+from django.template.backends.utils import csrf_token_lazy
 from django.template import TemplateDoesNotExist
-from django.core.exceptions import ImproperlyConfigured
 from django.urls import re_path
 from django.http import FileResponse
 from django.utils.http import http_date
+import re
+from pathlib import Path
 
 import mimetypes
 import posixpath
@@ -26,6 +27,7 @@ class Template:
         del context["view"]
         # noinspection PyUnresolvedReferences
         (BASE, FPM_FOLDER) = helpers.validate_settings()
+        print("render", self.template)
         return ftd.render_sync(FPM_FOLDER, self.template, BASE, **context)
 
 
@@ -42,10 +44,10 @@ class TemplateBackend(BaseEngine):
         return Template(template_name)
 
 
-def _serve(f):
-    content_type, encoding = mimetypes.guess_type(str(f))
+def _serve(fullpath: Path):
+    content_type, encoding = mimetypes.guess_type(str(fullpath))
     content_type = content_type or "application/octet-stream"
-
+    statobj = fullpath.stat()
     response = FileResponse(fullpath.open("rb"), content_type=content_type)
     response.headers["Last-Modified"] = http_date(statobj.st_mtime)
     if encoding:
@@ -59,9 +61,10 @@ def static():
 
     def view(_, path):
         path = posixpath.normpath(path)
-        fullpath = Path(safe_join(FPM_FOLDER, path))
+        fullpath = Path(helpers.safe_join(FPM_FOLDER, ".build", path))
         if fullpath.is_dir():
             return _serve(fullpath.join("index.html"))
-        _serve(fullpath)
+        return _serve(fullpath)
 
-    return [re_path(r"^%s(?P<path>.*)$" % re.escape(BASE.lstrip("/")), view)]
+    val = [re_path(r"^%s(?P<path>.*)$" % re.escape(BASE.lstrip("/")), view)]
+    return val
