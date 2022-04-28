@@ -39,7 +39,7 @@ class TemplateBackend(BaseEngine):
     # noinspection PyMethodMayBeStatic
     def get_template(self, template_name: str) -> Template:
         if not (template_name.startswith("/") and template_name.endswith("/")):
-            raise TemplateDoesNotExist()
+            raise TemplateDoesNotExist(f"Unable to find template for: {template_name}")
         return Template(template_name)
 
 
