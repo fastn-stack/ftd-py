@@ -745,7 +745,7 @@ dependencies = [
 [[package]]
 name = "fpm"
 version = "0.1.10"
-source = "git+https://github.com/FifthTry/fpm?rev=9dd38c2#9dd38c2ebb99a2e1f98e29edb1761face28b7dea"
+source = "git+https://github.com/FifthTry/fpm?rev=f373fbc#f373fbc7d3c7fc9b55905f36f66ba1daa19a5ef9"
 dependencies = [
  "antidote",
  "anyhow",
@@ -769,6 +769,7 @@ dependencies = [
  "regex",
  "reqwest",
  "rusqlite",
+ "semver 1.0.7",
  "serde",
  "serde_derive",
  "serde_json",
@@ -783,7 +784,7 @@ dependencies = [
 [[package]]
 name = "ftd"
 version = "0.1.18"
-source = "git+https://github.com/FifthTry/ftd?rev=72b28f3#72b28f3f5a67cfdb752a35cd0e19f43a2644c2c1"
+source = "git+https://github.com/FifthTry/ftd?rev=d93345d#d93345d34f126b0965d5b709bbfd797cd84e5607"
 dependencies = [
  "comrak",
  "css-color-parser",
@@ -802,7 +803,7 @@ dependencies = [
 
 [[package]]
 name = "ftd_sys"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "fpm",
  "openssl",
