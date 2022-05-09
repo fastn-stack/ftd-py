@@ -24,7 +24,10 @@ class Template:
         if request is not None:
             # context["request"] = request
             context["csrf_token"] = str(csrf_token_lazy(request))
-        del context["view"]
+        try:
+            del context["view"]
+        except KeyError:
+            pass
         # noinspection PyUnresolvedReferences
         (BASE, FPM_FOLDER) = helpers.validate_settings()
         return ftd.render_sync(FPM_FOLDER, self.template, BASE, **context)
