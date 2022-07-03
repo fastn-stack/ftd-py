@@ -54,3 +54,39 @@ def render_sync(
 ) -> str:
     res = asyncio.run(render(id, root, base_url, **data))
     return res
+
+
+def interpret(name: str, source: str):
+    try:
+        interpreted_object = ftd_sys.interpret(name, source)
+        # name = interpreted_object.hello("Amitu")
+        while True:
+            state = interpreted_object.get_state()
+            if state == "done":
+                print("state is done")
+                break
+
+            if state == "stuck_on_import":
+                print("stuck on import")
+                module = interpreted_object.get_module_to_import()
+                source = resolve_import(module)
+                print("module source", source)
+                interpreted_object.continue_after_import(module, source)
+
+            if state == "stuck_on_foreign_variable":
+                pass
+
+            if state == "stuck_on_processor":
+                pass
+
+    except Exception as e:
+        print("Exception in interpreter: ", e)
+
+
+def resolve_import(path) -> str:
+    print("getting module: ", path + ".ftd")
+    with open(path + ".ftd", "r") as f:
+        return f.read()
+
+
+interpret("hello.ftd", "-- import: foo\n -- ftd.text: Hello World")
