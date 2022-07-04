@@ -58,26 +58,28 @@ def render_sync(
 
 def interpret(name: str, source: str):
     try:
-        interpreted_object = ftd_sys.interpret(name, source)
-        # name = interpreted_object.hello("Amitu")
+        interpreter = ftd_sys.interpret(name, source)
         while True:
-            state = interpreted_object.get_state()
+            state = interpreter.get_state()
             if state == "done":
                 print("state is done")
                 break
 
             if state == "stuck_on_import":
                 print("stuck on import")
-                module = interpreted_object.get_module_to_import()
+                module = interpreter.get_module_to_import()
                 source = resolve_import(module)
-                print("module source", source)
-                interpreted_object.continue_after_import(module, source)
+                interpreter.continue_after_import(module, source)
+                print("stuck on import done")
 
             if state == "stuck_on_foreign_variable":
                 pass
 
             if state == "stuck_on_processor":
-                pass
+                print("stuck_on_processor")
+                section = interpreter.get_processor_section()
+
+                print("stuck_on_processor done")
 
     except Exception as e:
         print("Exception in interpreter: ", e)
@@ -86,7 +88,9 @@ def interpret(name: str, source: str):
 def resolve_import(path) -> str:
     print("getting module: ", path + ".ftd")
     with open(path + ".ftd", "r") as f:
-        return f.read()
+        content = f.read()
+        print("module content", path, content)
+        return content
 
 
 interpret("hello.ftd", "-- import: foo\n -- ftd.text: Hello World")

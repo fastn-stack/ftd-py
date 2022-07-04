@@ -11,12 +11,14 @@ crate-type = ["cdylib"]
 [dependencies]
 pyo3 = { version = "0.14", features = ["extension-module"] }
 pyo3-asyncio = { version = "0.14", features = ["tokio-runtime"] }
-fpm = { git = "https://github.com/FifthTry/fpm", rev = "c877167" }
-ftd = { path = "../../ftd" }
-#fpm = { path = "../../fpm" }
+#fpm = { git = "https://github.com/FifthTry/fpm", rev = "c877167" }
+#ftd = { path = "../../ftd" }
+ftd = { git = "https://github.com/FifthTry/ftd", rev = "a8e94b72" }
+fpm = { path = "../../fpm" }
 serde = { version = "1", features = ["derive"] }
 serde_derive = "1.0"
 serde_json = "1"
+futures = "0.3"
 
 # This is added to resolve
 # Error: "failed to run custom build command for `openssl-sys v0.9.72`"

@@ -1,9 +1,20 @@
 use pyo3::prelude::*;
 
 #[pyclass]
-#[derive(Clone)]
+pub struct Section {
+    pub section: ftd::p1::Section
+}
+
+#[pyclass]
+pub struct SubSection {
+    pub section: ftd::p1::SubSection
+}
+
+#[pyclass]
 struct Interpreter {
-    pub interpreter: ftd::Interpreter
+    document_id: String,
+    config: fpm::Config,
+    interpreter: std::cell::RefCell<Option<ftd::Interpreter>>
 }
 
 #[pymethods]
@@ -13,50 +24,87 @@ impl Interpreter {
         name
     }
 
-    pub fn get_state(&self) -> String {
-        match &self.interpreter {
-            ftd::Interpreter::StuckOnProcessor {..} => "stuck_on_processor".to_string(),
-            ftd::Interpreter::StuckOnForeignVariable {..} =>  "stuck_on_foreign_variable".to_string(),
-            ftd::Interpreter::StuckOnImport {..} =>  "stuck_on_import".to_string(),
-            ftd::Interpreter::Done {..} =>  "done".to_string(),
+    pub fn state_name(&self) -> Option<String> {
+        let interpreter = self.interpreter.borrow();
+        if let Some(i) = &*interpreter {
+            return Some(match i {
+                ftd::Interpreter::StuckOnProcessor { .. } => "stuck_on_processor".to_string(),
+                ftd::Interpreter::StuckOnForeignVariable { .. } => "stuck_on_foreign_variable".to_string(),
+                ftd::Interpreter::StuckOnImport { .. } => "stuck_on_import".to_string(),
+                ftd::Interpreter::Done { .. } => "done".to_string(),
+            })
         }
+        None
     }
 
     pub fn get_module_to_import(&self) -> Option<String> {
-        match &self.interpreter {
-            ftd::Interpreter::StuckOnImport {module, ..} => Some(module.to_string()),
-            _ => None
+        let interpreter = self.interpreter.borrow();
+        if let Some(i) = &*interpreter {
+            return match i {
+                ftd::Interpreter::StuckOnImport { module, .. } => Some(module.to_string()),
+                _ => None
+            }
         }
+        None
     }
 
-    pub fn continue_after_import(self_: Py<Interpreter>, py: pyo3::Python, id: &str, source: &str) {
-        let d: Interpreter = self_.extract(py).unwrap();
-        // Stuck here, because continue_after_import need object with ownership and from python
-        // unable to pass an object with ownership, only referenced object can be passed
-        // match &mut self.interpreter {
-        //     ftd::Interpreter::StuckOnImport {ref mut state, ..} => {
-        //         state.continue_after_import(id, source).unwrap();
-        //     },
-        //     _ => {}
-        // };
+    pub fn continue_after_import(&self, id: &str, source: &str) {
+        let interpreter = self.interpreter.replace(None).unwrap(); // TODO:
+        match interpreter {
+            ftd::Interpreter::StuckOnImport {state, ..} => {
+                let new_interpreter = state.continue_after_import(id, source).unwrap(); // TODO: remove unwrap
+                self.interpreter.replace(Some(new_interpreter));
+            },
+            _ => {}
+        };
     }
 
+    pub fn get_processor_section(&self) -> Option<Section> {
+        let interpreter = self.interpreter.borrow();
+        if let Some(i) = interpreter.as_ref() {
+            return match i {
+                ftd::Interpreter::StuckOnProcessor { section, .. } => Some(Section { section: section.clone()}), // TODO: Remove unwrap
+                _ => None
+            }
+        }
+        None
+    }
+
+    pub fn resolve_processor(&self, section: &Section) {
+        let interpreter = self.interpreter.borrow();
+        let state = if let Some(i) = interpreter.as_ref() {
+            match i {
+                ftd::Interpreter::StuckOnProcessor { state, .. } => Some(state),
+                _ => unimplemented!(""),
+            }
+        } else { None };
+
+        let state = state.unwrap(); // TODO:
+
+        fpm::library::process_sync(
+            &self.config,
+            &section.section,
+            &self.document_id,
+            &state.tdoc(&mut Default::default())).unwrap();
+    }
+
+
+    pub fn continue_after_processor(&self, _value: &str) {
+        // let section = serde_json::from_str().unwrap();
+        // _value is json serialised value
+    }
 
     pub fn get_foreign_variable_to_resolve(&self) -> String {
         todo!()
     }
-
-    pub fn get_processor_section(&self) -> String {
-        // returns json serialised section
-        todo!()
-    }
-
-    pub fn continue_after_processor(&self, _value: &str) {
-        // _value is json serialised value
-    }
 }
 
 
+
+fn fpm_config() -> fpm::Config {
+    let config = futures::executor::block_on(fpm::Config::read2(None, false));
+    config.unwrap() //TODO: Handle Unwrap
+}
 
 #[pyfunction]
 fn interpret(name: &str, source: &str)-> PyResult<Interpreter>  {
@@ -64,7 +112,11 @@ fn interpret(name: &str, source: &str)-> PyResult<Interpreter>  {
         eprintln!("{:?}", e);
         pyo3::exceptions::PyTypeError::new_err(e.to_string())
     })?;
-    Ok(Interpreter {interpreter: s})
+    Ok(Interpreter {
+        document_id: name.to_string(),
+        interpreter: std::cell::RefCell::new(Some(s)),
+        config: fpm_config()
+    })
 }
 
 /// A Python module implemented in Rust.
