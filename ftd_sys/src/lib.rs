@@ -11,6 +11,12 @@ pub struct SubSection {
 }
 
 #[pyclass]
+#[derive(Clone)]
+pub struct FtdValue {
+    pub value: ftd::Value
+}
+
+#[pyclass]
 struct Interpreter {
     document_id: String,
     config: fpm::Config,
@@ -70,7 +76,7 @@ impl Interpreter {
         None
     }
 
-    pub fn resolve_processor(&self, section: &Section) {
+    pub fn resolve_processor(&self, section: &Section) -> FtdValue {
         let interpreter = self.interpreter.borrow();
         let state = if let Some(i) = interpreter.as_ref() {
             match i {
@@ -81,17 +87,25 @@ impl Interpreter {
 
         let state = state.unwrap(); // TODO:
 
-        fpm::library::process_sync(
+        let value = fpm::library::process_sync(
             &self.config,
             &section.section,
             &self.document_id,
             &state.tdoc(&mut Default::default())).unwrap();
+        FtdValue { value }
+
     }
 
 
-    pub fn continue_after_processor(&self, _value: &str) {
-        // let section = serde_json::from_str().unwrap();
-        // _value is json serialised value
+    pub fn continue_after_processor(&self, value: FtdValue) {
+        let interpreter = self.interpreter.replace(None).unwrap(); // TODO:
+        match interpreter {
+            ftd::Interpreter::StuckOnProcessor {state, section} => {
+                let new_interpreter = state.continue_after_processor(&section, value.value).unwrap(); // TODO: remove unwrap
+                self.interpreter.replace(Some(new_interpreter));
+            },
+            _ => {}
+        };
     }
 
     pub fn get_foreign_variable_to_resolve(&self) -> String {
@@ -102,22 +116,56 @@ impl Interpreter {
 
 
 fn fpm_config() -> fpm::Config {
-    let config = futures::executor::block_on(fpm::Config::read2(None, false));
-    config.unwrap() //TODO: Handle Unwrap
+    use tokio::runtime::Runtime;
+    let rt  = Runtime::new().unwrap();
+
+    rt.block_on(async {
+        fpm::Config::read2(None, false).await.unwrap()
+    })
+
+    // match futures::executor::block_on(fpm::Config::read2(None, false)) {
+    //     Ok(c) => c,
+    //     Err(e) => {
+    //         panic!("Error {:?}", e)
+    //     }
+    // }
 }
 
+
 #[pyfunction]
-fn interpret(name: &str, source: &str)-> PyResult<Interpreter>  {
-    let s = ftd::interpret(name, source).map_err(|e| {
-        eprintln!("{:?}", e);
-        pyo3::exceptions::PyTypeError::new_err(e.to_string())
-    })?;
-    Ok(Interpreter {
-        document_id: name.to_string(),
-        interpreter: std::cell::RefCell::new(Some(s)),
-        config: fpm_config()
-    })
+fn interpret(name: &str, source: &str)-> PyResult<Interpreter> {
+        let s = ftd::interpret(name, source).map_err(|e| {
+            eprintln!("{:?}", e);
+            pyo3::exceptions::PyTypeError::new_err(e.to_string())
+        })?;
+
+        let i = Interpreter {
+            document_id: name.to_string(),
+            interpreter: std::cell::RefCell::new(Some(s)),
+            config: fpm_config()
+        };
+        Ok(i)
 }
+
+
+// #[pyfunction]
+// fn interpret<'a>(py: pyo3::Python<'a>, name: &'a str, source: &'a str)-> PyResult<&'a PyAny> {
+//     pyo3_asyncio::tokio::future_into_py(py, async move {
+//         let s = ftd::interpret(name, source).map_err(|e| {
+//             eprintln!("{:?}", e);
+//             pyo3::exceptions::PyTypeError::new_err(e.to_string())
+//         })?;
+//
+//         let i = Interpreter {
+//             document_id: name.to_string(),
+//             interpreter: std::cell::RefCell::new(Some(s)),
+//             config: fpm_config()
+//         };
+//         Ok(Python::with_gil(|py| i.into_py(py)))
+//     })
+//
+// }
+
 
 /// A Python module implemented in Rust.
 #[pymodule]

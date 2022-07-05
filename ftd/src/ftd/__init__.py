@@ -56,11 +56,11 @@ def render_sync(
     return res
 
 
-def interpret(name: str, source: str):
+def interpret(name, source, handle_processor, handle_foreign_variable):
     try:
         interpreter = ftd_sys.interpret(name, source)
         while True:
-            state = interpreter.get_state()
+            state = interpreter.state_name()
             if state == "done":
                 print("state is done")
                 break
@@ -78,7 +78,14 @@ def interpret(name: str, source: str):
             if state == "stuck_on_processor":
                 print("stuck_on_processor")
                 section = interpreter.get_processor_section()
+                """
+                For we using fpm processor, we have to use python processor as well
+                """
+                processor_value = interpreter.resolve_processor(section)
 
+                if processor_value == None:
+                    processor_value = handle_processor(section)
+                interpreter.continue_after_processor(processor_value)
                 print("stuck_on_processor done")
 
     except Exception as e:
@@ -93,4 +100,21 @@ def resolve_import(path) -> str:
         return content
 
 
-interpret("hello.ftd", "-- import: foo\n -- ftd.text: Hello World")
+doc ="""
+-- import: foo
+
+-- ftd.text: Hello World
+
+-- ftd.toc-item list toc:
+$processor$: toc
+
+- index.html
+  fpm: FTD Package Manager
+- about/
+  About `fpm`
+  - why-not/
+    Why Not `fpm`?
+    
+"""
+
+interpret("hello.ftd", doc)
