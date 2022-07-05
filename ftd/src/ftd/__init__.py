@@ -59,7 +59,7 @@ def render_sync(
     return res
 
 
-def interpret(name, source, handle_processor, handle_foreign_variable):
+def interpret(name, source, handle_processor, handle_foreign_variable, handle_import):
     try:
         interpreter = ftd_sys.interpret(name, source)
         while True:
@@ -70,7 +70,10 @@ def interpret(name, source, handle_processor, handle_foreign_variable):
             if state == "stuck_on_import":
                 print("stuck on import")
                 module = interpreter.get_module_to_import()
+                # Rust resolve import
                 source = resolve_import(module)
+                if not source:
+                    source = handle_import(module)
                 interpreter.continue_after_import(module, source)
                 print("stuck on import done")
 
@@ -102,6 +105,10 @@ def handle_foreign_variable(section):
     pass
 
 
+def handle_import(section):
+    pass
+
+
 def resolve_import(path) -> str:
     print("getting module: ", path + ".ftd")
     with open(path + ".ftd", "r") as f:
@@ -116,7 +123,7 @@ doc = """
 -- ftd.text: Hello World
 
 
-\-- ftd.toc-item list toc:
+-- ftd.toc-item list toc:
 $processor$: toc
 
 - index.html
@@ -128,4 +135,4 @@ $processor$: toc
     
 """
 
-print(interpret("hello.ftd", doc, handle_processor, handle_foreign_variable))
+print(interpret("hello.ftd", doc, handle_processor, handle_foreign_variable, handle_import))

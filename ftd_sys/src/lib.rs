@@ -80,6 +80,7 @@ impl Interpreter {
         None
     }
 
+    // PyResult<Option<FtdValue>>
     pub fn resolve_processor(&self, section: &Section) -> FtdValue {
         let interpreter = self.interpreter.borrow();
         let state = if let Some(i) = interpreter.as_ref() {
@@ -118,6 +119,7 @@ impl Interpreter {
         };
     }
 
+    // From Option to Result
     pub fn render(&self) -> Option<String> {
         let interpreter = self.interpreter.borrow();
         if let Some(i) = interpreter.as_ref() {
@@ -153,15 +155,7 @@ impl Interpreter {
 fn fpm_config() -> fpm::Config {
     use tokio::runtime::Runtime;
     let rt = Runtime::new().unwrap();
-
     rt.block_on(async { fpm::Config::read2(None, false).await.unwrap() })
-
-    // match futures::executor::block_on(fpm::Config::read2(None, false)) {
-    //     Ok(c) => c,
-    //     Err(e) => {
-    //         panic!("Error {:?}", e)
-    //     }
-    // }
 }
 
 #[pyfunction]
