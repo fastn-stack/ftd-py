@@ -10,7 +10,6 @@ pub struct Config {
     pub config: fpm::Config,
 }
 
-
 #[pyclass]
 pub struct SubSection {
     pub section: ftd::p1::SubSection,
@@ -161,13 +160,15 @@ impl Interpreter {
 fn fpm_config(root: Option<String>) -> PyResult<Config> {
     use tokio::runtime::Runtime;
     let rt = Runtime::new().unwrap();
-    rt.block_on(async { fpm::Config::read2(root, false).await
-        .map(|config| Config{config})
-        .map_err(|err| {
-            eprintln!("fpm_config {:?}", err);
-            pyo3::exceptions::PyTypeError::new_err(err.to_string())
-        })
-     })
+    rt.block_on(async {
+        fpm::Config::read2(root, false)
+            .await
+            .map(|config| Config { config })
+            .map_err(|err| {
+                eprintln!("fpm_config {:?}", err);
+                pyo3::exceptions::PyTypeError::new_err(err.to_string())
+            })
+    })
 }
 
 // TODO: Result<String>
@@ -175,7 +176,10 @@ fn file_content(config: &fpm::Config, id: &str) -> std::result::Result<String, S
     use tokio::runtime::Runtime;
     let rt = Runtime::new().unwrap();
     rt.block_on(async {
-        let file = config.get_file_by_id(id, &config.package).await.map_err(|e| e.to_string())?;
+        let file = config
+            .get_file_by_id(id, &config.package)
+            .await
+            .map_err(|e| e.to_string())?;
         match file {
             fpm::File::Ftd(f) => Ok(f.content),
             _ => Err("This block should not executed".to_string()),
@@ -184,9 +188,15 @@ fn file_content(config: &fpm::Config, id: &str) -> std::result::Result<String, S
 }
 
 #[pyfunction]
-fn interpret(id: &str, root: Option<String>, _base_url: Option<String>, _data: Option<String>) -> PyResult<Interpreter> {
+fn interpret(
+    id: &str,
+    root: Option<String>,
+    _base_url: Option<String>,
+    _data: Option<String>,
+) -> PyResult<Interpreter> {
     let config = fpm_config(root)?;
-    let source = file_content(&config.config, id).map_err(|err| pyo3::exceptions::PyTypeError::new_err(err.to_string()))?;
+    let source = file_content(&config.config, id)
+        .map_err(|err| pyo3::exceptions::PyTypeError::new_err(err.to_string()))?;
 
     let s = ftd::interpret(id, &source).map_err(|e| {
         eprintln!("{:?}", e);
