@@ -9,11 +9,11 @@ import asyncio
 class Document:
     # noinspection PyShadowingBuiltins
     def __init__(
-        self,
-        id: str,
-        root: Optional[str] = None,
-        base_url: Optional[str] = None,
-        **data
+            self,
+            id: str,
+            root: Optional[str] = None,
+            base_url: Optional[str] = None,
+            **data
     ):
         self.id = id
         if not root:
@@ -35,14 +35,16 @@ class Document:
 
 # noinspection PyShadowingBuiltins
 def parse(
-    id: str, root: Optional[str] = None, base_url: Optional[str] = None, **data
+        id: str, root: Optional[str] = None, base_url: Optional[str] = None,
+        **data
 ) -> Document:
     return Document(id, root, base_url, **data)
 
 
 # noinspection PyShadowingBuiltins
 async def render(
-    id: str, root: Optional[str] = None, base_url: Optional[str] = None, **data
+        id: str, root: Optional[str] = None, base_url: Optional[str] = None,
+        **data
 ) -> str:
     d = parse(id, root, base_url, **data)
     return await d.render()
@@ -50,7 +52,8 @@ async def render(
 
 # noinspection PyShadowingBuiltins
 def render_sync(
-    id: str, root: Optional[str] = None, base_url: Optional[str] = None, **data
+        id: str, root: Optional[str] = None, base_url: Optional[str] = None,
+        **data
 ) -> str:
     res = asyncio.run(render(id, root, base_url, **data))
     return res
@@ -62,8 +65,7 @@ def interpret(name, source, handle_processor, handle_foreign_variable):
         while True:
             state = interpreter.state_name()
             if state == "done":
-                print("state is done")
-                break
+                 return interpreter.render()
 
             if state == "stuck_on_import":
                 print("stuck on import")
@@ -78,18 +80,26 @@ def interpret(name, source, handle_processor, handle_foreign_variable):
             if state == "stuck_on_processor":
                 print("stuck_on_processor")
                 section = interpreter.get_processor_section()
-                """
-                For we using fpm processor, we have to use python processor as well
-                """
                 processor_value = interpreter.resolve_processor(section)
-
-                if processor_value == None:
+                """
+                If value returned from fpm processors is None, we will call to
+                python application processor 
+                """
+                if not processor_value:
                     processor_value = handle_processor(section)
                 interpreter.continue_after_processor(processor_value)
                 print("stuck_on_processor done")
 
     except Exception as e:
         print("Exception in interpreter: ", e)
+
+
+def handle_processor(section):
+    pass
+
+
+def handle_foreign_variable(section):
+    pass
 
 
 def resolve_import(path) -> str:
@@ -100,12 +110,13 @@ def resolve_import(path) -> str:
         return content
 
 
-doc ="""
+doc = """
 -- import: foo
 
 -- ftd.text: Hello World
 
--- ftd.toc-item list toc:
+
+\-- ftd.toc-item list toc:
 $processor$: toc
 
 - index.html
@@ -117,4 +128,4 @@ $processor$: toc
     
 """
 
-interpret("hello.ftd", doc)
+print(interpret("hello.ftd", doc, handle_processor, handle_foreign_variable))

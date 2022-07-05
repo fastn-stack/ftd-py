@@ -32,7 +32,7 @@ impl Interpreter {
 
     pub fn state_name(&self) -> Option<String> {
         let interpreter = self.interpreter.borrow();
-        if let Some(i) = &*interpreter {
+        if let Some(i) = interpreter.as_ref() {
             return Some(match i {
                 ftd::Interpreter::StuckOnProcessor { .. } => "stuck_on_processor".to_string(),
                 ftd::Interpreter::StuckOnForeignVariable { .. } => "stuck_on_foreign_variable".to_string(),
@@ -45,7 +45,7 @@ impl Interpreter {
 
     pub fn get_module_to_import(&self) -> Option<String> {
         let interpreter = self.interpreter.borrow();
-        if let Some(i) = &*interpreter {
+        if let Some(i) = interpreter.as_ref() {
             return match i {
                 ftd::Interpreter::StuckOnImport { module, .. } => Some(module.to_string()),
                 _ => None
@@ -81,7 +81,9 @@ impl Interpreter {
         let state = if let Some(i) = interpreter.as_ref() {
             match i {
                 ftd::Interpreter::StuckOnProcessor { state, .. } => Some(state),
-                _ => unimplemented!(""),
+                // TODO: Convert it into error
+                _ => unimplemented!("this should not get called something is wrong"),
+
             }
         } else { None };
 
@@ -104,8 +106,38 @@ impl Interpreter {
                 let new_interpreter = state.continue_after_processor(&section, value.value).unwrap(); // TODO: remove unwrap
                 self.interpreter.replace(Some(new_interpreter));
             },
-            _ => {}
+            // TODO: Convert it into error
+            _ => unimplemented!("this should not get called something is wrong"),
         };
+    }
+
+
+    pub fn render(&self) -> Option<String> {
+        let interpreter = self.interpreter.borrow();
+        if let Some(i) = interpreter.as_ref() {
+            match i {
+                ftd::Interpreter::Done {document} => {
+                    let doc_title = match &document.title() {
+                        Some(x) => x.original.clone(),
+                        _ => self.document_id.to_string(),
+                    };
+                    let ftd_doc = document.to_rt("main", &self.document_id);
+                    let file_content = fpm::utils::replace_markers(
+                        fpm::ftd_html(),
+                        &self.config,
+                        &fpm::utils::id_to_path(&self.document_id),
+                        doc_title.as_str(),
+                        "/",
+                        &ftd_doc,
+                    );
+                    return Some(file_content)
+                },
+                // TODO: Convert it into error
+                _ => unimplemented!("this should not get called something is wrong"),
+
+            }
+        }
+        None
     }
 
     pub fn get_foreign_variable_to_resolve(&self) -> String {
@@ -148,6 +180,15 @@ fn interpret(name: &str, source: &str)-> PyResult<Interpreter> {
 }
 
 
+/// A Python module implemented in Rust.
+#[pymodule]
+fn ftd_sys(_py: Python, m: &PyModule) -> PyResult<()> {
+    m.add_function(wrap_pyfunction!(interpret, m)?)?;
+    // m.add_function(wrap_pyfunction!(render, m)?)?;
+    Ok(())
+}
+
+
 // #[pyfunction]
 // fn interpret<'a>(py: pyo3::Python<'a>, name: &'a str, source: &'a str)-> PyResult<&'a PyAny> {
 //     pyo3_asyncio::tokio::future_into_py(py, async move {
@@ -166,14 +207,6 @@ fn interpret(name: &str, source: &str)-> PyResult<Interpreter> {
 //
 // }
 
-
-/// A Python module implemented in Rust.
-#[pymodule]
-fn ftd_sys(_py: Python, m: &PyModule) -> PyResult<()> {
-    m.add_function(wrap_pyfunction!(interpret, m)?)?;
-    // m.add_function(wrap_pyfunction!(render, m)?)?;
-    Ok(())
-}
 
 // #[pyfunction]
 // fn render(
