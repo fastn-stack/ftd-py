@@ -1,19 +1,21 @@
 import json
 import os
-from typing import Optional
+from typing import Optional, Callable
 
 import ftd_sys
-import asyncio
 
 
 class Document:
     # noinspection PyShadowingBuiltins
     def __init__(
-            self,
-            id: str,
-            root: Optional[str] = None,
-            base_url: Optional[str] = None,
-            **data
+        self,
+        id: str,
+        handle_processor: Callable,
+        handle_foreign_variable: Callable,
+        handle_import: Callable,
+        root: Optional[str] = None,
+        base_url: Optional[str] = None,
+        **data
     ):
         self.id = id
         if not root:
@@ -24,53 +26,113 @@ class Document:
         self.root = root
         self.data = data
         self.base_url = base_url if base_url else "/"
+        self.handle_processor = handle_processor
+        self.handle_foreign_variable = handle_foreign_variable
+        self.handle_import = handle_import
 
-    async def render(self, **data) -> str:
+    def render(self, **data) -> str:
         all_data = self.data
         all_data.update(data)
         all_data = json.dumps(all_data)
         # noinspection PyUnresolvedReferences
-        return await ftd_sys.render(self.id, self.root, self.base_url, all_data)
+        return interpret(
+            self.id,
+            self.handle_processor,
+            self.handle_foreign_variable,
+            self.handle_import,
+            self.root,
+            self.base_url,
+            all_data,
+        )
 
 
 # noinspection PyShadowingBuiltins
 def parse(
-        id: str, root: Optional[str] = None, base_url: Optional[str] = None,
-        **data
+    id: str,
+    handle_processor: Callable,
+    handle_foreign_variable: Callable,
+    handle_import: Callable,
+    root: Optional[str] = None,
+    base_url: Optional[str] = None,
+    **data
 ) -> Document:
-    return Document(id, root, base_url, **data)
+    return Document(
+        id,
+        handle_processor,
+        handle_foreign_variable,
+        handle_import,
+        root,
+        base_url,
+        **data,
+    )
 
 
 # noinspection PyShadowingBuiltins
-async def render(
-        id: str, root: Optional[str] = None, base_url: Optional[str] = None,
-        **data
+def render(
+    id: str,
+    handle_processor: Callable,
+    handle_foreign_variable: Callable,
+    handle_import: Callable,
+    root: Optional[str] = None,
+    base_url: Optional[str] = None,
+    **data
 ) -> str:
-    d = parse(id, root, base_url, **data)
-    return await d.render()
+    d = parse(
+        id,
+        handle_processor,
+        handle_foreign_variable,
+        handle_import,
+        root,
+        base_url,
+        **data,
+    )
+    return d.render()
 
 
 # noinspection PyShadowingBuiltins
 def render_sync(
-        id: str, root: Optional[str] = None, base_url: Optional[str] = None,
-        **data
+    id: str,
+    handle_processor: Callable,
+    handle_foreign_variable: Callable,
+    handle_import: Callable,
+    root: Optional[str] = None,
+    base_url: Optional[str] = None,
+    **data
 ) -> str:
-    res = asyncio.run(render(id, root, base_url, **data))
+    res = render(
+        id,
+        handle_processor,
+        handle_foreign_variable,
+        handle_import,
+        root,
+        base_url,
+        **data,
+    )
     return res
 
 
-def interpret(name, source, handle_processor, handle_foreign_variable, handle_import):
+# rename it to parse
+def interpret(
+    id: str,
+    handle_processor: Callable,
+    handle_foreign_variable: Callable,
+    handle_import: Callable,
+    root: Optional[str] = None,
+    base_url: Optional[str] = None,
+    data: Optional[str] = None,
+):
     try:
-        interpreter = ftd_sys.interpret(name, source)
+        interpreter = ftd_sys.interpret(id, root, base_url, data)
         while True:
             state = interpreter.state_name()
             if state == "done":
-                 return interpreter.render()
+                return interpreter.render()
 
             if state == "stuck_on_import":
                 print("stuck on import")
                 module = interpreter.get_module_to_import()
-                # Rust resolve import
+                # It will call Rust resolve import
+                # ftd_sys.resolve_import
                 source = resolve_import(module)
                 if not source:
                     source = handle_import(module)
@@ -97,15 +159,11 @@ def interpret(name, source, handle_processor, handle_foreign_variable, handle_im
         print("Exception in interpreter: ", e)
 
 
-def handle_processor(section):
+def resolve_processor(section):
     pass
 
 
-def handle_foreign_variable(section):
-    pass
-
-
-def handle_import(section):
+def resolve_foreign_variable(section):
     pass
 
 
@@ -135,4 +193,4 @@ $processor$: toc
     
 """
 
-print(interpret("hello.ftd", doc, handle_processor, handle_foreign_variable, handle_import))
+print(render_sync("foo/", resolve_processor, resolve_foreign_variable, resolve_import))
