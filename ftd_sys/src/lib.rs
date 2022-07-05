@@ -2,25 +2,25 @@ use pyo3::prelude::*;
 
 #[pyclass]
 pub struct Section {
-    pub section: ftd::p1::Section
+    pub section: ftd::p1::Section,
 }
 
 #[pyclass]
 pub struct SubSection {
-    pub section: ftd::p1::SubSection
+    pub section: ftd::p1::SubSection,
 }
 
 #[pyclass]
 #[derive(Clone)]
 pub struct FtdValue {
-    pub value: ftd::Value
+    pub value: ftd::Value,
 }
 
 #[pyclass]
 struct Interpreter {
     document_id: String,
     config: fpm::Config,
-    interpreter: std::cell::RefCell<Option<ftd::Interpreter>>
+    interpreter: std::cell::RefCell<Option<ftd::Interpreter>>,
 }
 
 #[pymethods]
@@ -35,10 +35,12 @@ impl Interpreter {
         if let Some(i) = interpreter.as_ref() {
             return Some(match i {
                 ftd::Interpreter::StuckOnProcessor { .. } => "stuck_on_processor".to_string(),
-                ftd::Interpreter::StuckOnForeignVariable { .. } => "stuck_on_foreign_variable".to_string(),
+                ftd::Interpreter::StuckOnForeignVariable { .. } => {
+                    "stuck_on_foreign_variable".to_string()
+                }
                 ftd::Interpreter::StuckOnImport { .. } => "stuck_on_import".to_string(),
                 ftd::Interpreter::Done { .. } => "done".to_string(),
-            })
+            });
         }
         None
     }
@@ -48,8 +50,8 @@ impl Interpreter {
         if let Some(i) = interpreter.as_ref() {
             return match i {
                 ftd::Interpreter::StuckOnImport { module, .. } => Some(module.to_string()),
-                _ => None
-            }
+                _ => None,
+            };
         }
         None
     }
@@ -57,10 +59,10 @@ impl Interpreter {
     pub fn continue_after_import(&self, id: &str, source: &str) {
         let interpreter = self.interpreter.replace(None).unwrap(); // TODO:
         match interpreter {
-            ftd::Interpreter::StuckOnImport {state, ..} => {
+            ftd::Interpreter::StuckOnImport { state, .. } => {
                 let new_interpreter = state.continue_after_import(id, source).unwrap(); // TODO: remove unwrap
                 self.interpreter.replace(Some(new_interpreter));
-            },
+            }
             _ => {}
         };
     }
@@ -69,9 +71,11 @@ impl Interpreter {
         let interpreter = self.interpreter.borrow();
         if let Some(i) = interpreter.as_ref() {
             return match i {
-                ftd::Interpreter::StuckOnProcessor { section, .. } => Some(Section { section: section.clone()}), // TODO: Remove unwrap
-                _ => None
-            }
+                ftd::Interpreter::StuckOnProcessor { section, .. } => Some(Section {
+                    section: section.clone(),
+                }), // TODO: Remove unwrap
+                _ => None,
+            };
         }
         None
     }
@@ -83,9 +87,10 @@ impl Interpreter {
                 ftd::Interpreter::StuckOnProcessor { state, .. } => Some(state),
                 // TODO: Convert it into error
                 _ => unimplemented!("this should not get called something is wrong"),
-
             }
-        } else { None };
+        } else {
+            None
+        };
 
         let state = state.unwrap(); // TODO:
 
@@ -93,30 +98,31 @@ impl Interpreter {
             &self.config,
             &section.section,
             &self.document_id,
-            &state.tdoc(&mut Default::default())).unwrap();
+            &state.tdoc(&mut Default::default()),
+        )
+        .unwrap();
         FtdValue { value }
-
     }
-
 
     pub fn continue_after_processor(&self, value: FtdValue) {
         let interpreter = self.interpreter.replace(None).unwrap(); // TODO:
         match interpreter {
-            ftd::Interpreter::StuckOnProcessor {state, section} => {
-                let new_interpreter = state.continue_after_processor(&section, value.value).unwrap(); // TODO: remove unwrap
+            ftd::Interpreter::StuckOnProcessor { state, section } => {
+                let new_interpreter = state
+                    .continue_after_processor(&section, value.value)
+                    .unwrap(); // TODO: remove unwrap
                 self.interpreter.replace(Some(new_interpreter));
-            },
+            }
             // TODO: Convert it into error
             _ => unimplemented!("this should not get called something is wrong"),
         };
     }
 
-
     pub fn render(&self) -> Option<String> {
         let interpreter = self.interpreter.borrow();
         if let Some(i) = interpreter.as_ref() {
             match i {
-                ftd::Interpreter::Done {document} => {
+                ftd::Interpreter::Done { document } => {
                     let doc_title = match &document.title() {
                         Some(x) => x.original.clone(),
                         _ => self.document_id.to_string(),
@@ -130,11 +136,10 @@ impl Interpreter {
                         "/",
                         &ftd_doc,
                     );
-                    return Some(file_content)
-                },
+                    return Some(file_content);
+                }
                 // TODO: Convert it into error
                 _ => unimplemented!("this should not get called something is wrong"),
-
             }
         }
         None
@@ -145,15 +150,11 @@ impl Interpreter {
     }
 }
 
-
-
 fn fpm_config() -> fpm::Config {
     use tokio::runtime::Runtime;
-    let rt  = Runtime::new().unwrap();
+    let rt = Runtime::new().unwrap();
 
-    rt.block_on(async {
-        fpm::Config::read2(None, false).await.unwrap()
-    })
+    rt.block_on(async { fpm::Config::read2(None, false).await.unwrap() })
 
     // match futures::executor::block_on(fpm::Config::read2(None, false)) {
     //     Ok(c) => c,
@@ -163,22 +164,20 @@ fn fpm_config() -> fpm::Config {
     // }
 }
 
-
 #[pyfunction]
-fn interpret(name: &str, source: &str)-> PyResult<Interpreter> {
-        let s = ftd::interpret(name, source).map_err(|e| {
-            eprintln!("{:?}", e);
-            pyo3::exceptions::PyTypeError::new_err(e.to_string())
-        })?;
+fn interpret(name: &str, source: &str) -> PyResult<Interpreter> {
+    let s = ftd::interpret(name, source).map_err(|e| {
+        eprintln!("{:?}", e);
+        pyo3::exceptions::PyTypeError::new_err(e.to_string())
+    })?;
 
-        let i = Interpreter {
-            document_id: name.to_string(),
-            interpreter: std::cell::RefCell::new(Some(s)),
-            config: fpm_config()
-        };
-        Ok(i)
+    let i = Interpreter {
+        document_id: name.to_string(),
+        interpreter: std::cell::RefCell::new(Some(s)),
+        config: fpm_config(),
+    };
+    Ok(i)
 }
-
 
 /// A Python module implemented in Rust.
 #[pymodule]
@@ -187,7 +186,6 @@ fn ftd_sys(_py: Python, m: &PyModule) -> PyResult<()> {
     // m.add_function(wrap_pyfunction!(render, m)?)?;
     Ok(())
 }
-
 
 // #[pyfunction]
 // fn interpret<'a>(py: pyo3::Python<'a>, name: &'a str, source: &'a str)-> PyResult<&'a PyAny> {
@@ -206,7 +204,6 @@ fn ftd_sys(_py: Python, m: &PyModule) -> PyResult<()> {
 //     })
 //
 // }
-
 
 // #[pyfunction]
 // fn render(
