@@ -30,12 +30,14 @@ def render(req, doc_path="/"):
     if not doc_path:
         doc_path = "/"
 
-    content = ftd.render(
-        doc_path,
-        resolve_processor,
-        resolve_foreign_variable,
-        resolve_import,
-        root="/Users/wilderbit/github/ftd-py/django_example/ui"
-    )
-
-    return HttpResponse(content, content_type="text/html")
+    try:
+        content = ftd.render(
+            doc_path,
+            resolve_processor,
+            resolve_foreign_variable,
+            resolve_import,
+            root="/Users/wilderbit/github/ftd-py/django_example/ui"
+        )
+        return HttpResponse(content, content_type="text/html", status=200)
+    except Exception as e:
+        return HttpResponse(e, content_type="text/html", status=200)
