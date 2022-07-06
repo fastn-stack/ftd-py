@@ -62,11 +62,12 @@ impl Interpreter {
         None
     }
 
-    pub fn continue_after_import(&self, id: &str, source: &str) {
+    pub fn continue_after_import(&self, id: &str, source: Option<String>) {
+        let source = source.unwrap_or_else(|| "".to_string());
         let interpreter = self.interpreter.replace(None).unwrap(); // TODO:
         match interpreter {
             ftd::Interpreter::StuckOnImport { state, .. } => {
-                let new_interpreter = state.continue_after_import(id, source).unwrap(); // TODO: remove unwrap
+                let new_interpreter = state.continue_after_import(id, source.as_str()).unwrap(); // TODO: remove unwrap
                 self.interpreter.replace(Some(new_interpreter));
             }
             _ => {}
@@ -113,7 +114,29 @@ impl Interpreter {
 
 
     pub fn resolve_import(&self, module: &str) -> PyResult<String> {
-        Ok("".to_string())
+        use tokio::runtime::Runtime;
+        let rt = Runtime::new().unwrap();
+        rt.block_on(async {
+            let mut library = self.library.borrow_mut();
+            let mut interpreter = self.interpreter.borrow_mut();
+            let state = if let Some(ref mut i) = *interpreter {
+                match i {
+                    ftd::Interpreter::StuckOnImport {ref mut state, ..} => state,
+                    _ => return Err(pyo3::exceptions::PyException::new_err("only stuck_on_import expected"))
+                }
+            } else {
+                return Err(pyo3::exceptions::PyException::new_err("interpreter_expected"));
+            };
+            println!("resolving import: {}", module);
+            let d = fpm::resolve_import(&mut library, state, module).await
+                .map_err(|e| {
+                eprintln!("Error: fpm-resolve-import {:?}", e);
+                pyo3::exceptions::PyException::new_err(e.to_string())
+            })?;
+            println!("import resolved: {}", module);
+            Ok(d)
+        })
+
     }
 
     pub fn continue_after_processor(&self, value: FtdValue) {
