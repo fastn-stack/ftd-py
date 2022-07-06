@@ -129,15 +129,14 @@ def interpret(
                 return interpreter.render()
 
             if state == "stuck_on_import":
-                print("stuck on import")
+                print("stuck_on_import")
                 module = interpreter.get_module_to_import()
                 # It will call Rust resolve import
-                # ftd_sys.resolve_import
-                source = resolve_import(module)
+                source = interpreter.resolve_import(module)
                 if not source:
                     source = handle_import(module)
                 interpreter.continue_after_import(module, source)
-                print("stuck on import done")
+                print("stuck_on_import done")
 
             if state == "stuck_on_foreign_variable":
                 pass
@@ -157,6 +156,7 @@ def interpret(
 
     except Exception as e:
         print("Exception in interpreter: ", e)
+        return e
 
 
 def resolve_processor(section):
@@ -193,4 +193,4 @@ $processor$: toc
     
 """
 
-print(render_sync("foo/", resolve_processor, resolve_foreign_variable, resolve_import))
+# print(render_sync("foo/", resolve_processor, resolve_foreign_variable, resolve_import))
