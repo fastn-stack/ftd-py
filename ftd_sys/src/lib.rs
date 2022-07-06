@@ -26,6 +26,7 @@ struct Interpreter {
     document_id: String,
     config: fpm::Config,
     interpreter: std::cell::RefCell<Option<ftd::Interpreter>>,
+    library: std::cell::RefCell<fpm::Library2>
 }
 
 #[pymethods]
@@ -110,6 +111,11 @@ impl Interpreter {
         FtdValue { value }
     }
 
+
+    pub fn resolve_import(&self, module: &str) -> PyResult<String> {
+        Ok("".to_string())
+    }
+
     pub fn continue_after_processor(&self, value: FtdValue) {
         let interpreter = self.interpreter.replace(None).unwrap(); // TODO:
         match interpreter {
@@ -191,7 +197,7 @@ fn file_content(config: &fpm::Config, id: &str) -> std::result::Result<String, S
 fn interpret(
     id: &str,
     root: Option<String>,
-    _base_url: Option<String>,
+    base_url: Option<String>,
     _data: Option<String>,
 ) -> PyResult<Interpreter> {
     let config = fpm_config(root)?;
@@ -206,7 +212,15 @@ fn interpret(
     Ok(Interpreter {
         document_id: id.to_string(),
         interpreter: std::cell::RefCell::new(Some(s)),
-        config: config.config,
+        config: config.config.clone(),
+        library: std::cell::RefCell::new(fpm::library::Library2 {
+            packages_under_process: vec![config.config.package.name.to_string()],
+            config: config.config,
+            markdown: None,
+            document_id: id.to_string(),
+            translated_data: Default::default(),
+            base_url: base_url.unwrap_or_else(|| "/".to_string()),
+        })
     })
 }
 
