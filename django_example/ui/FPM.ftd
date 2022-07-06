@@ -2,3 +2,5 @@
 
 -- fpm.package: test-package
 base: this is base
+
+-- fpm.dependency: fifthtry.github.io/doc-site as ft

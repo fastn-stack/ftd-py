@@ -1,2 +1,7 @@
+-- import: fpm
+
 -- ftd.text: Hello Foo
 
+-- ftd.column text-column:
+
+--- ftd.text: Hello from foo

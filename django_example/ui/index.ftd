@@ -1,3 +1,9 @@
 -- import: fpm
+\-- import: ft
+-- import: test-package/foo
+
+\-- ft.page: Hello
 
 -- ftd.text: Hello Index From FTD Python
+
+-- foo.text-column:
