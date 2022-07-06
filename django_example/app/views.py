@@ -14,8 +14,28 @@ class IndexView(TemplateView):
         return context
 
 
+def resolve_processor(section):
+    pass
+
+
+def resolve_foreign_variable(section):
+    pass
+
+
+def resolve_import(path) -> str:
+    pass
+
+
 def render(req, doc_path="/"):
-    if not len(doc_path):
-        print("Hello")
-    print(doc_path)
-    return HttpResponse(doc_path, content_type="text/html")
+    if not doc_path:
+        doc_path = "/"
+
+    content = ftd.render(
+        doc_path,
+        resolve_processor,
+        resolve_foreign_variable,
+        resolve_import,
+        root="/Users/wilderbit/github/ftd-py/django_example/ui"
+    )
+
+    return HttpResponse(content, content_type="text/html")

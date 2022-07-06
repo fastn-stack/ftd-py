@@ -1,3 +1,4 @@
 -- import: fpm
 
 -- fpm.package: test-package
+base: this is base
