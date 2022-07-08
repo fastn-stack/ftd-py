@@ -141,6 +141,8 @@ def interpret(
 
             if state == "stuck_on_foreign_variable":
                 print("stuck_on_foreign_variable")
+                variable = interpreter.get_foreign_variable_to_resolve()
+                print(variable)
 
             if state == "stuck_on_processor":
                 print("stuck_on_processor")

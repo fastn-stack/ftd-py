@@ -139,7 +139,7 @@ impl Interpreter {
 
     }
 
-    pub fn continue_after_processor(&self, value: FtdValue) {
+    pub fn continue_after_processor(&self, value: FtdValue) -> PyResult<()> {
         let interpreter = self.interpreter.replace(None).unwrap(); // TODO:
         match interpreter {
             ftd::Interpreter::StuckOnProcessor { state, section } => {
@@ -148,10 +148,31 @@ impl Interpreter {
                     .unwrap(); // TODO: remove unwrap
                 self.interpreter.replace(Some(new_interpreter));
             }
-            // TODO: Convert it into error
-            _ => unimplemented!("this should not get called something is wrong"),
+            _ => return Err(pyo3::exceptions::PyException::new_err("continue-after-processor, this should not get called")),
         };
+        Err(pyo3::exceptions::PyException::new_err("continue-after-processor, something bad wrong"))
     }
+
+    pub fn get_foreign_variable_to_resolve(&self) -> PyResult<String> {
+        let interpreter = self.interpreter.borrow();
+        if let Some(i) = interpreter.as_ref() {
+            return match i {
+                ftd::Interpreter::StuckOnForeignVariable { variable, .. } => Ok(variable.to_string()),
+                _ => return Err(pyo3::exceptions::PyException::new_err("stuck-on-fv, this should not get called")),
+            };
+        }
+        Err(pyo3::exceptions::PyException::new_err("stuck-on-fv, something bad wrong"))
+    }
+
+    pub fn resolve_foreign_variable(&self, variable: String, ) -> PyResult<String> {
+
+        Ok("".to_string())
+    }
+
+    pub fn continue_after_foreign_variable(&self) -> PyResult<()> {
+        Ok(())
+    }
+
 
     // From Option to Result
     pub fn render(&self) -> Option<String> {
@@ -179,10 +200,6 @@ impl Interpreter {
             }
         }
         None
-    }
-
-    pub fn get_foreign_variable_to_resolve(&self) -> String {
-        todo!()
     }
 }
 
