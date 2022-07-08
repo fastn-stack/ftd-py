@@ -1,9 +1,17 @@
 -- import: fpm
-\-- import: ft
--- import: test-package/foo
 
-\-- ft.page: Hello
+/ big problem in this statement, I don't know why :-(
+/-- import: ft
+
+-- import: ftd-ui/foo
+-- import: sample/assets as assets
+
+
+/-- ft.page: Hello
 
 -- ftd.text: Hello Index From FTD Python
 
--- foo.text-column:
+/-- foo.text-column:
+
+-- ftd.image:
+src: $assets.files.1.jpg
