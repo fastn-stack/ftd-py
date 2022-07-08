@@ -142,6 +142,7 @@ def interpret(
             if state == "stuck_on_foreign_variable":
                 print("stuck_on_foreign_variable")
                 variable = interpreter.get_foreign_variable_to_resolve()
+                print("variable: ", variable)
                 value = interpreter.resolve_foreign_variable(variable, base_url)
                 if not value:
                     value = handle_foreign_variable(variable)

@@ -63,7 +63,7 @@ def static():
 
     def view(_, path):
         path = posixpath.normpath(path)
-        fullpath = Path(helpers.safe_join(FPM_FOLDER, ".build", path))
+        fullpath = Path(helpers.safe_join(FPM_FOLDER, path))
         if fullpath.is_dir():
             return _serve(fullpath.join("index.html"))
         return _serve(fullpath)

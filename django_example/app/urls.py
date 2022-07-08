@@ -17,4 +17,4 @@ Including another URLconf
 from django.urls import re_path
 from . import views
 
-urlpatterns = [re_path("(?P<doc_path>.*)/?", views.render)]
+urlpatterns = [re_path("(?P<path>.*)/?", views.render)]
