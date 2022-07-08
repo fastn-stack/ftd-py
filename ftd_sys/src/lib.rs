@@ -243,9 +243,7 @@ impl Interpreter {
                 ))
             }
         };
-        Err(pyo3::exceptions::PyException::new_err(
-            "continue-after-foreign-variable, something bad wrong",
-        ))
+        Ok(())
     }
 
     // From Option to Result
