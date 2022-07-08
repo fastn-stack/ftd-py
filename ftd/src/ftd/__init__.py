@@ -124,6 +124,7 @@ def interpret(
     try:
         interpreter = ftd_sys.interpret(id, root, base_url, data)
         while True:
+            print("in ftd interpreter-loop")
             state = interpreter.state_name()
             if state == "done":
                 return interpreter.render()
@@ -139,7 +140,7 @@ def interpret(
                 print("stuck_on_import done")
 
             if state == "stuck_on_foreign_variable":
-                pass
+                print("stuck_on_foreign_variable")
 
             if state == "stuck_on_processor":
                 print("stuck_on_processor")
