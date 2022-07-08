@@ -26,7 +26,7 @@ struct Interpreter {
     document_id: String,
     config: fpm::Config,
     interpreter: std::cell::RefCell<Option<ftd::Interpreter>>,
-    library: std::cell::RefCell<fpm::Library2>
+    library: std::cell::RefCell<fpm::Library2>,
 }
 
 #[pymethods]
@@ -112,7 +112,6 @@ impl Interpreter {
         FtdValue { value }
     }
 
-
     pub fn resolve_import(&self, module: &str) -> PyResult<String> {
         use tokio::runtime::Runtime;
         let rt = Runtime::new().unwrap();
@@ -121,22 +120,28 @@ impl Interpreter {
             let mut interpreter = self.interpreter.borrow_mut();
             let state = if let Some(ref mut i) = *interpreter {
                 match i {
-                    ftd::Interpreter::StuckOnImport {ref mut state, ..} => state,
-                    _ => return Err(pyo3::exceptions::PyException::new_err("only stuck_on_import expected"))
+                    ftd::Interpreter::StuckOnImport { ref mut state, .. } => state,
+                    _ => {
+                        return Err(pyo3::exceptions::PyException::new_err(
+                            "only stuck_on_import expected",
+                        ))
+                    }
                 }
             } else {
-                return Err(pyo3::exceptions::PyException::new_err("interpreter_expected"));
+                return Err(pyo3::exceptions::PyException::new_err(
+                    "interpreter_expected",
+                ));
             };
             println!("resolving import: {}", module);
-            let d = fpm::resolve_import(&mut library, state, module).await
+            let d = fpm::resolve_import(&mut library, state, module)
+                .await
                 .map_err(|e| {
-                eprintln!("Error: fpm-resolve-import {:?}", e);
-                pyo3::exceptions::PyException::new_err(e.to_string())
-            })?;
+                    eprintln!("Error: fpm-resolve-import {:?}", e);
+                    pyo3::exceptions::PyException::new_err(e.to_string())
+                })?;
             println!("import resolved: {}", module);
             Ok(d)
         })
-
     }
 
     pub fn continue_after_processor(&self, value: FtdValue) -> PyResult<()> {
@@ -148,31 +153,100 @@ impl Interpreter {
                     .unwrap(); // TODO: remove unwrap
                 self.interpreter.replace(Some(new_interpreter));
             }
-            _ => return Err(pyo3::exceptions::PyException::new_err("continue-after-processor, this should not get called")),
+            _ => {
+                return Err(pyo3::exceptions::PyException::new_err(
+                    "continue-after-processor, this should not get called",
+                ))
+            }
         };
-        Err(pyo3::exceptions::PyException::new_err("continue-after-processor, something bad wrong"))
+        Err(pyo3::exceptions::PyException::new_err(
+            "continue-after-processor, something bad wrong",
+        ))
     }
 
     pub fn get_foreign_variable_to_resolve(&self) -> PyResult<String> {
         let interpreter = self.interpreter.borrow();
         if let Some(i) = interpreter.as_ref() {
             return match i {
-                ftd::Interpreter::StuckOnForeignVariable { variable, .. } => Ok(variable.to_string()),
-                _ => return Err(pyo3::exceptions::PyException::new_err("stuck-on-fv, this should not get called")),
+                ftd::Interpreter::StuckOnForeignVariable { variable, .. } => {
+                    Ok(variable.to_string())
+                }
+                _ => {
+                    return Err(pyo3::exceptions::PyException::new_err(
+                        "stuck-on-fv, this should not get called",
+                    ))
+                }
             };
         }
-        Err(pyo3::exceptions::PyException::new_err("stuck-on-fv, something bad wrong"))
+        Err(pyo3::exceptions::PyException::new_err(
+            "stuck-on-fv, something bad wrong",
+        ))
     }
 
-    pub fn resolve_foreign_variable(&self, variable: String, ) -> PyResult<String> {
+    pub fn resolve_foreign_variable(
+        &self,
+        variable: String,
+        base_url: Option<String>,
+    ) -> PyResult<FtdValue> {
+        use tokio::runtime::Runtime;
+        let rt = Runtime::new().unwrap();
 
-        Ok("".to_string())
+        rt.block_on(async {
+            let base_url = base_url.unwrap_or_else(|| "/".to_string());
+            let mut library = self.library.borrow_mut();
+            let interpreter = self.interpreter.borrow();
+            let state = if let Some(ref i) = interpreter.as_ref() {
+                match i {
+                    ftd::Interpreter::StuckOnForeignVariable { ref state, .. } => state,
+                    _ => {
+                        return Err(pyo3::exceptions::PyException::new_err(
+                            "resolve_foreign_variable only StuckOnForeignVariable expected",
+                        ))
+                    }
+                }
+            } else {
+                return Err(pyo3::exceptions::PyException::new_err(
+                    "resolve_foreign_variable interpreter_expected",
+                ));
+            };
+            println!("resolving foreign variable: {}", variable);
+            let d = fpm::resolve_foreign_variable2(
+                &variable,
+                &self.document_id,
+                state,
+                &mut library,
+                base_url.as_str(),
+                false,
+            )
+            .await
+            .map_err(|e| {
+                eprintln!("Error: fpm-foreign-variable {:?}", e);
+                pyo3::exceptions::PyException::new_err(e.to_string())
+            })?;
+            println!("foreign variable: {}", variable);
+            Ok(FtdValue { value: d })
+        })
     }
 
-    pub fn continue_after_foreign_variable(&self) -> PyResult<()> {
-        Ok(())
+    pub fn continue_after_foreign_variable(&self, variable: &str, value: FtdValue) -> PyResult<()> {
+        let interpreter = self.interpreter.replace(None).unwrap(); // TODO:
+        match interpreter {
+            ftd::Interpreter::StuckOnForeignVariable { state, .. } => {
+                let new_interpreter = state
+                    .continue_after_variable(variable, value.value)
+                    .unwrap(); // TODO: remove unwrap
+                self.interpreter.replace(Some(new_interpreter));
+            }
+            _ => {
+                return Err(pyo3::exceptions::PyException::new_err(
+                    "continue-after-foreign-variable, this should not get called",
+                ))
+            }
+        };
+        Err(pyo3::exceptions::PyException::new_err(
+            "continue-after-foreign-variable, something bad wrong",
+        ))
     }
-
 
     // From Option to Result
     pub fn render(&self) -> Option<String> {
@@ -260,7 +334,7 @@ fn interpret(
             document_id: id.to_string(),
             translated_data: Default::default(),
             base_url: base_url.unwrap_or_else(|| "/".to_string()),
-        })
+        }),
     })
 }
 
