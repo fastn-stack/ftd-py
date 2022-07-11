@@ -1,10 +1,11 @@
 -- import: fpm
 
-/ big problem in this statement, I don't know why :-(
+/ some big problem in this statement, I don't know why :-(
 /-- import: ft
 
--- import: ftd-ui/foo
--- import: sample/assets as assets
+-- import: ui/foo
+
+-- import: ui/assets as assets
 
 
 /-- ft.page: Hello
