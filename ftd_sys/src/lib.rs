@@ -275,17 +275,25 @@ impl Interpreter {
     }
 }
 
-fn fpm_config(root: Option<String>) -> PyResult<Config> {
+fn fpm_config(root: Option<String>, data: Option<String>,) -> PyResult<Config> {
     use tokio::runtime::Runtime;
     let rt = Runtime::new().unwrap();
     rt.block_on(async {
-        fpm::Config::read2(root, false)
+        let mut config = fpm::Config::read2(root, false)
             .await
             .map(|config| Config { config })
             .map_err(|err| {
                 eprintln!("fpm_config {:?}", err);
                 pyo3::exceptions::PyTypeError::new_err(err.to_string())
-            })
+            })?;
+        if let Some(data) = data {
+            config.config.attach_data_string(data.as_str())
+                .map_err(|err| {
+                    eprintln!("fpm_config attach_data_string {:?}", err);
+                    pyo3::exceptions::PyTypeError::new_err(err.to_string())
+                })?;
+        }
+        Ok(config)
     })
 }
 
@@ -310,9 +318,9 @@ fn interpret(
     id: &str,
     root: Option<String>,
     base_url: Option<String>,
-    _data: Option<String>,
+    data: Option<String>,
 ) -> PyResult<Interpreter> {
-    let config = fpm_config(root)?;
+    let config = fpm_config(root, data)?;
     let source = file_content(&config.config, id)
         .map_err(|err| pyo3::exceptions::PyTypeError::new_err(err.to_string()))?;
 
