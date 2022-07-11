@@ -63,6 +63,11 @@ def static():
     (BASE, FPM_FOLDER) = helpers.validate_settings()
 
     def view(_, path):
+
+        """
+        If directory name is `ui` and package name `ui.com`, It will fail
+        """
+
         if path and path.startswith("-/"):
             path = path.lstrip("-/")
 
