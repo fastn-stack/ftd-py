@@ -1,7 +1,7 @@
--- import: fpm
+-- import: ui/assets as assets
 
 -- ftd.text: Hello Foo
 
--- ftd.column text-column:
 
---- ftd.text: Hello from foo
+-- ftd.image:
+src: $assets.files.1.jpg

@@ -1,18 +1,18 @@
--- import: fpm
+-- ftd.text: Hello Index From FTD Python
+
+/-- import: fpm
 
 / some big problem in this statement, I don't know why :-(
 /-- import: ft
 
--- import: ui/foo
+/-- import: ui/foo
 
--- import: ui/assets as assets
+/-- import: ui/assets as assets
 
 
 /-- ft.page: Hello
 
--- ftd.text: Hello Index From FTD Python
-
 /-- foo.text-column:
 
--- ftd.image:
+/-- ftd.image:
 src: $assets.files.1.jpg

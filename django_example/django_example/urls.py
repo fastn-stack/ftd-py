@@ -15,12 +15,11 @@ Including another URLconf
 """
 # from django.contrib import admin
 from django.urls import path, include
-
-# from app import views
+from django.contrib import admin
+from app import views
+import ftd_django
 
 urlpatterns = [
-    # path("admin/", admin.site.urls),
-    # path("", views.IndexView.as_view()),
-    path("", include("app.urls")),
-]
-# + ftd_django.static()
+    path("admin/", admin.site.urls),
+    path("", views.IndexView.as_view()),
+] + ftd_django.static()
