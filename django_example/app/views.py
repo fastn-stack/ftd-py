@@ -1,16 +1,15 @@
-from django.views.generic import FormView, TemplateView
-from django.http import HttpResponse
-import ftd
-# import ftd_django
-from django.conf import settings
-from django.http import FileResponse
-from django.utils.http import http_date
-from django.urls import re_path
-
 from pathlib import Path
 import mimetypes
 import posixpath
-import re
+
+from django.views.generic import FormView, TemplateView
+from django.http import HttpResponse
+from django.conf import settings
+from django.http import FileResponse
+from django.utils.http import http_date
+
+# import ftd_django
+import ftd
 
 from os.path import abspath, dirname, join, normcase, sep
 
@@ -54,7 +53,7 @@ def render(req, path="/"):
             resolve_processor,
             resolve_foreign_variable,
             resolve_import,
-            root=settings.FPM_PACKAGE_ROOT
+            root=settings.FPM_PACKAGE_ROOT,
         )
         return HttpResponse(content, content_type="text/html", status=200)
     except Exception as e:
@@ -70,8 +69,7 @@ def serve_static(path):
         content_type, encoding = mimetypes.guess_type(str(fullpath))
         content_type = content_type or "application/octet-stream"
         statobj = fullpath.stat()
-        response = FileResponse(
-            fullpath.open("rb"), content_type=content_type)
+        response = FileResponse(fullpath.open("rb"), content_type=content_type)
         response.headers["Last-Modified"] = http_date(statobj.st_mtime)
         if encoding:
             response.headers["Content-Encoding"] = encoding
@@ -86,4 +84,3 @@ def serve_static(path):
 
     # val = [re_path(r"^%s(?P<path>.*)$" % re.escape(BASE.lstrip("/")), view)]
     return view(path)
-
