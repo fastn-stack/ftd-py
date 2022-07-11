@@ -30,7 +30,8 @@ class Template:
             pass
         # noinspection PyUnresolvedReferences
         (BASE, FPM_FOLDER) = helpers.validate_settings()
-        return ftd.render(FPM_FOLDER, self.template, BASE, **context)
+
+        return ftd.render(self.template, root=FPM_FOLDER, base_url=BASE, **context)
 
 
 class TemplateBackend(BaseEngine):
@@ -62,8 +63,13 @@ def static():
     (BASE, FPM_FOLDER) = helpers.validate_settings()
 
     def view(_, path):
+        if path and path.startswith("-/"):
+            path = path.lstrip("-/")
+
+        # print(path, BASE, FPM_FOLDER)
+
         path = posixpath.normpath(path)
-        fullpath = Path(helpers.safe_join(FPM_FOLDER, path))
+        fullpath = Path(helpers.safe_join(path))
         if fullpath.is_dir():
             return _serve(fullpath.join("index.html"))
         return _serve(fullpath)

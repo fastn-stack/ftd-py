@@ -9,7 +9,7 @@ class Document:
     # noinspection PyShadowingBuiltins
     def __init__(
         self,
-        id: str,
+        id: str, *,
         root: Optional[str] = None,
         base_url: Optional[str] = None,
         handle_processor: Callable = None,
@@ -37,18 +37,18 @@ class Document:
         # noinspection PyUnresolvedReferences
         return interpret(
             self.id,
-            self.root,
-            self.base_url,
-            self.handle_processor,
-            self.handle_foreign_variable,
-            self.handle_import,
-            all_data,
+            root=self.root,
+            base_url=self.base_url,
+            handle_processor=self.handle_processor,
+            handle_foreign_variable=self.handle_foreign_variable,
+            handle_import=self.handle_import,
+            data=all_data,
         )
 
 
 # noinspection PyShadowingBuiltins
 def parse(
-    id: str,
+    id: str, *,
     root: Optional[str] = None,
     base_url: Optional[str] = None,
     handle_processor: Callable = None,
@@ -58,18 +58,18 @@ def parse(
 ) -> Document:
     return Document(
         id,
-        root,
-        base_url,
-        handle_processor,
-        handle_foreign_variable,
-        handle_import,
+        root=root,
+        base_url=base_url,
+        handle_processor=handle_processor,
+        handle_foreign_variable=handle_foreign_variable,
+        handle_import=handle_import,
         **data,
     )
 
 
 # noinspection PyShadowingBuiltins
 def render(
-    id: str,
+    id: str, *,
     root: Optional[str] = None,
     base_url: Optional[str] = None,
     handle_processor: Callable = None,
@@ -79,18 +79,18 @@ def render(
 ) -> str:
     d = parse(
         id,
-        root,
-        base_url,
-        handle_processor,
-        handle_foreign_variable,
-        handle_import,
+        root=root,
+        base_url=base_url,
+        handle_processor=handle_processor,
+        handle_foreign_variable=handle_foreign_variable,
+        handle_import=handle_import,
         **data,
     )
     return d.render()
 
 
 def interpret(
-    id: str,
+    id: str, *,
     root: Optional[str] = None,
     base_url: Optional[str] = None,
     handle_processor: Callable = None,
@@ -109,12 +109,17 @@ def interpret(
             if state == "stuck_on_import":
                 print("stuck_on_import")
                 module = interpreter.get_module_to_import()
-                # It will call Rust resolve import
                 source = interpreter.resolve_import(module)
                 if not source:
                     if not handle_import:
                         raise Exception("can not import: %s" % module)
                     source = handle_import(module)
+
+                # TODO: May need to take some different approach
+                # if rust is sending empty string, python taking it None
+                if source == "__import_resolved__":
+                    source = ""
+
                 interpreter.continue_after_import(module, source)
                 print("stuck_on_import done")
 

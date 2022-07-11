@@ -133,13 +133,16 @@ impl Interpreter {
                 ));
             };
             println!("resolving import: {}", module);
-            let d = fpm::resolve_import(&mut library, state, module)
+            let mut d = fpm::resolve_import(&mut library, state, module)
                 .await
                 .map_err(|e| {
                     eprintln!("Error: fpm-resolve-import {:?}", e);
                     pyo3::exceptions::PyException::new_err(e.to_string())
                 })?;
             println!("import resolved: {}", module);
+            if d.is_empty() {
+                d = "__import_resolved__".to_string()
+            }
             Ok(d)
         })
     }
