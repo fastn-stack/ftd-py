@@ -30,7 +30,7 @@ class Template:
             pass
         # noinspection PyUnresolvedReferences
         (BASE, FPM_FOLDER) = helpers.validate_settings()
-        return ftd.render_sync(FPM_FOLDER, self.template, BASE, **context)
+        return ftd.render(FPM_FOLDER, self.template, BASE, **context)
 
 
 class TemplateBackend(BaseEngine):

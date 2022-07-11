@@ -89,29 +89,6 @@ def render(
     return d.render()
 
 
-# noinspection PyShadowingBuiltins
-def render_sync(
-    id: str,
-    handle_processor: Callable,
-    handle_foreign_variable: Callable,
-    handle_import: Callable,
-    root: Optional[str] = None,
-    base_url: Optional[str] = None,
-    **data
-) -> str:
-    res = render(
-        id,
-        handle_processor,
-        handle_foreign_variable,
-        handle_import,
-        root,
-        base_url,
-        **data,
-    )
-    return res
-
-
-# rename it to parse
 def interpret(
     id: str,
     handle_processor: Callable,
