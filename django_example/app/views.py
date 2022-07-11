@@ -26,18 +26,6 @@ class IndexView(TemplateView):
         return context
 
 
-def resolve_processor(section):
-    pass
-
-
-def resolve_foreign_variable(section):
-    pass
-
-
-def resolve_import(path) -> str:
-    pass
-
-
 def render(req, path="/"):
     if not path:
         path = "/"
@@ -50,10 +38,10 @@ def render(req, path="/"):
     try:
         content = ftd.render(
             path,
-            resolve_processor,
-            resolve_foreign_variable,
-            resolve_import,
             root=settings.FPM_PACKAGE_ROOT,
+            handle_processor=resolve_processor,
+            handle_foreign_variable=resolve_foreign_variable,
+            handle_import=resolve_import,
         )
         return HttpResponse(content, content_type="text/html", status=200)
     except Exception as e:

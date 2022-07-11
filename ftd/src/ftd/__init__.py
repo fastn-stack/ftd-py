@@ -10,11 +10,11 @@ class Document:
     def __init__(
         self,
         id: str,
-        handle_processor: Callable,
-        handle_foreign_variable: Callable,
-        handle_import: Callable,
         root: Optional[str] = None,
         base_url: Optional[str] = None,
+        handle_processor: Callable = None,
+        handle_foreign_variable: Callable = None,
+        handle_import: Callable = None,
         **data
     ):
         self.id = id
@@ -37,11 +37,11 @@ class Document:
         # noinspection PyUnresolvedReferences
         return interpret(
             self.id,
+            self.root,
+            self.base_url,
             self.handle_processor,
             self.handle_foreign_variable,
             self.handle_import,
-            self.root,
-            self.base_url,
             all_data,
         )
 
@@ -49,20 +49,20 @@ class Document:
 # noinspection PyShadowingBuiltins
 def parse(
     id: str,
-    handle_processor: Callable,
-    handle_foreign_variable: Callable,
-    handle_import: Callable,
     root: Optional[str] = None,
     base_url: Optional[str] = None,
+    handle_processor: Callable = None,
+    handle_foreign_variable: Callable = None,
+    handle_import: Callable = None,
     **data
 ) -> Document:
     return Document(
         id,
+        root,
+        base_url,
         handle_processor,
         handle_foreign_variable,
         handle_import,
-        root,
-        base_url,
         **data,
     )
 
@@ -70,20 +70,20 @@ def parse(
 # noinspection PyShadowingBuiltins
 def render(
     id: str,
-    handle_processor: Callable,
-    handle_foreign_variable: Callable,
-    handle_import: Callable,
     root: Optional[str] = None,
     base_url: Optional[str] = None,
+    handle_processor: Callable = None,
+    handle_foreign_variable: Callable = None,
+    handle_import: Callable = None,
     **data
 ) -> str:
     d = parse(
         id,
+        root,
+        base_url,
         handle_processor,
         handle_foreign_variable,
         handle_import,
-        root,
-        base_url,
         **data,
     )
     return d.render()
@@ -91,11 +91,11 @@ def render(
 
 def interpret(
     id: str,
-    handle_processor: Callable,
-    handle_foreign_variable: Callable,
-    handle_import: Callable,
     root: Optional[str] = None,
     base_url: Optional[str] = None,
+    handle_processor: Callable = None,
+    handle_foreign_variable: Callable = None,
+    handle_import: Callable = None,
     data: Optional[str] = None,
 ):
     try:
@@ -112,6 +112,8 @@ def interpret(
                 # It will call Rust resolve import
                 source = interpreter.resolve_import(module)
                 if not source:
+                    if not handle_import:
+                        raise Exception("can not import: %s" % module)
                     source = handle_import(module)
                 interpreter.continue_after_import(module, source)
                 print("stuck_on_import done")
@@ -122,6 +124,9 @@ def interpret(
                 print("variable: ", variable)
                 value = interpreter.resolve_foreign_variable(variable, base_url)
                 if not value:
+                    if not handle_foreign_variable:
+                        raise Exception(
+                            "can not import foreign variable: %s" % variable)
                     value = handle_foreign_variable(variable)
                 interpreter.continue_after_foreign_variable(variable, value)
                 print("stuck_on_foreign_variable done")
@@ -135,6 +140,9 @@ def interpret(
                 python application processor 
                 """
                 if not processor_value:
+                    if not handle_processor:
+                        raise Exception(
+                            "can not handle processor: %s" % section)
                     processor_value = handle_processor(section)
                 interpreter.continue_after_processor(processor_value)
                 print("stuck_on_processor done")
@@ -142,40 +150,3 @@ def interpret(
     except Exception as e:
         print("Exception in interpreter: ", e)
         return e
-
-
-def resolve_processor(section):
-    pass
-
-
-def resolve_foreign_variable(section):
-    pass
-
-
-def resolve_import(path) -> str:
-    print("getting module: ", path + ".ftd")
-    with open(path + ".ftd", "r") as f:
-        content = f.read()
-        print("module content", path, content)
-        return content
-
-
-doc = """
--- import: foo
-
--- ftd.text: Hello World
-
-
--- ftd.toc-item list toc:
-$processor$: toc
-
-- index.html
-  fpm: FTD Package Manager
-- about/
-  About `fpm`
-  - why-not/
-    Why Not `fpm`?
-    
-"""
-
-# print(render_sync("foo/", resolve_processor, resolve_foreign_variable, resolve_import))
