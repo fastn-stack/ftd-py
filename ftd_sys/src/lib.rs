@@ -302,8 +302,7 @@ fn fpm_config(root: Option<String>, data: Option<String>,) -> PyResult<Config> {
 
 // TODO: Result<String>
 fn file_content(config: &fpm::Config, id: &str) -> std::result::Result<String, String> {
-    use tokio::runtime::Runtime;
-    let rt = Runtime::new().unwrap();
+    let rt = tokio::runtime::Runtime::new().unwrap();
     rt.block_on(async {
         let file = config
             .get_file_by_id(id, &config.package)
@@ -347,11 +346,51 @@ fn interpret(
     })
 }
 
+#[pyfunction]
+fn get_file_content(path: &str) -> PyResult<(Vec<u8>, String)> {
+    let rt = tokio::runtime::Runtime::new().unwrap();
+
+    rt.block_on(async {
+        let mut config = fpm_config(None, None)?.config;
+        let f = match config.get_file_and_package_by_id(path).await {
+            Ok(f) => f,
+            Err(e) => {
+                eprintln!("ftd-sys error: path: {}, {:?}", path, e);
+                return Err(pyo3::exceptions::PyTypeError::new_err(e.to_string()))
+            }
+        };
+        config.current_document = Some(f.get_id());
+
+        Ok(match f {
+            fpm::File::Ftd(document) => {
+                (document.content.into_bytes(), guess_mime_type(&document.id).as_ref().to_string())
+            }
+            fpm::File::Code(document) => {
+                (document.content.into_bytes(), guess_mime_type(&document.id).as_ref().to_string())
+            }
+            fpm::File::Image(document) => {
+                (document.content, guess_mime_type(&document.id).as_ref().to_string())
+            }
+            fpm::File::Markdown(document) => {
+                (document.content.into_bytes(), guess_mime_type(&document.id).as_ref().to_string())
+            }
+            fpm::File::Static(document) => {
+                (document.content, guess_mime_type(&document.id).as_ref().to_string())
+            }
+        })
+    })
+}
+
+fn guess_mime_type(path: &str) -> mime_guess::Mime {
+    mime_guess::from_path(path).first_or_octet_stream()
+}
+
+
 /// A Python module implemented in Rust.
 #[pymodule]
 fn ftd_sys(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(interpret, m)?)?;
-    // m.add_function(wrap_pyfunction!(render, m)?)?;
+    m.add_function(wrap_pyfunction!(get_file_content, m)?)?;
     Ok(())
 }
 

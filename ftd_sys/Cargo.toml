@@ -20,6 +20,7 @@ serde_derive = "1.0"
 serde_json = "1"
 futures = "0.3"
 tokio = "1.19.2"
+mime_guess = "2"
 
 # This is added to resolve
 # Error: "failed to run custom build command for `openssl-sys v0.9.72`"

@@ -519,17 +519,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "cfb"
-version = "0.7.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "19ff6ea9647f5b4fb422a553d5b6fe1b398986a6e4f458d1219eb77e0e6e0606"
-dependencies = [
- "byteorder",
- "fnv",
- "uuid 1.1.2",
-]
-
-[[package]]
 name = "cfg-if"
 version = "0.1.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1062,7 +1051,6 @@ dependencies = [
  "home",
  "ignore",
  "indoc 1.0.4",
- "infer",
  "intl-memoizer",
  "itertools",
  "lazy_static 1.4.0",
@@ -1110,6 +1098,7 @@ dependencies = [
  "fpm",
  "ftd",
  "futures 0.3.21",
+ "mime_guess",
  "openssl",
  "pyo3",
  "pyo3-asyncio",
@@ -1598,15 +1587,6 @@ dependencies = [
  "quote",
  "syn",
  "unindent",
-]
-
-[[package]]
-name = "infer"
-version = "0.8.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e035cede526e0b21d5adffc9fa0eb4ef5d6026fe9c5b0bfe8084b9472b587a55"
-dependencies = [
- "cfb",
 ]
 
 [[package]]
@@ -2629,7 +2609,7 @@ dependencies = [
  "tokio-threadpool",
  "tokio-timer",
  "url 1.7.2",
- "uuid 0.7.4",
+ "uuid",
  "winreg",
 ]
 
@@ -3439,12 +3419,6 @@ checksum = "90dbc611eb48397705a6b0f6e917da23ae517e4d127123d2cf7674206627d32a"
 dependencies = [
  "rand 0.6.5",
 ]
-
-[[package]]
-name = "uuid"
-version = "1.1.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dd6469f4314d5f1ffec476e05f17cc9a78bc7a27a6a857842170bdf8d6f98d2f"
 
 [[package]]
 name = "vcpkg"
