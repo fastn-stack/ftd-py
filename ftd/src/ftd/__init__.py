@@ -9,13 +9,14 @@ class Document:
     # noinspection PyShadowingBuiltins
     def __init__(
         self,
-        id: str, *,
+        id: str,
+        *,
         root: Optional[str] = None,
         base_url: Optional[str] = None,
         handle_processor: Callable = None,
         handle_foreign_variable: Callable = None,
         handle_import: Callable = None,
-        **data
+        **data,
     ):
         self.id = id
         if not root:
@@ -48,13 +49,14 @@ class Document:
 
 # noinspection PyShadowingBuiltins
 def parse(
-    id: str, *,
+    id: str,
+    *,
     root: Optional[str] = None,
     base_url: Optional[str] = None,
     handle_processor: Callable = None,
     handle_foreign_variable: Callable = None,
     handle_import: Callable = None,
-    **data
+    **data,
 ) -> Document:
     return Document(
         id,
@@ -69,13 +71,14 @@ def parse(
 
 # noinspection PyShadowingBuiltins
 def render(
-    id: str, *,
+    id: str,
+    *,
     root: Optional[str] = None,
     base_url: Optional[str] = None,
     handle_processor: Callable = None,
     handle_foreign_variable: Callable = None,
     handle_import: Callable = None,
-    **data
+    **data,
 ) -> str:
     d = parse(
         id,
@@ -90,7 +93,8 @@ def render(
 
 
 def interpret(
-    id: str, *,
+    id: str,
+    *,
     root: Optional[str] = None,
     base_url: Optional[str] = None,
     handle_processor: Callable = None,
@@ -131,7 +135,8 @@ def interpret(
                 if not value:
                     if not handle_foreign_variable:
                         raise Exception(
-                            "can not import foreign variable: %s" % variable)
+                            "can not import foreign variable: %s" % variable
+                        )
                     value = handle_foreign_variable(variable)
                 interpreter.continue_after_foreign_variable(variable, value)
                 print("stuck_on_foreign_variable done")
@@ -147,8 +152,7 @@ def interpret(
                 """
                 if not processor_value:
                     if not handle_processor:
-                        raise Exception(
-                            "can not handle processor: %s" % section)
+                        raise Exception("can not handle processor: %s" % section)
                     processor_value = handle_processor(section)
                 interpreter.continue_after_processor(processor_value)
                 print("stuck_on_processor done")

@@ -30,8 +30,7 @@ class Template:
         # noinspection PyUnresolvedReferences
         (BASE, FPM_FOLDER) = helpers.validate_settings()
 
-        return ftd.render(
-            self.template, root=FPM_FOLDER, base_url=BASE, **context)
+        return ftd.render(self.template, root=FPM_FOLDER, base_url=BASE, **context)
 
 
 class TemplateBackend(BaseEngine):
@@ -65,6 +64,7 @@ def static():
     def view(_, path):
         from django.http import HttpResponse
         import traceback
+
         """
         If directory name is `ui` and package name `ui.com`, It will fail
         """
@@ -74,7 +74,8 @@ def static():
             if content_type == "ftd":
                 context = {}
                 return HttpResponse(
-                    ftd.render(path, root=FPM_FOLDER, base_url=BASE, **context))
+                    ftd.render(path, root=FPM_FOLDER, base_url=BASE, **context)
+                )
             return FileResponse(content, content_type=content_type)
         except Exception as e:
             traceback.print_stack()
