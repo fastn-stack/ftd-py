@@ -51,56 +51,74 @@ impl Interpreter {
         None
     }
 
-    pub fn get_module_to_import(&self) -> Option<String> {
+    pub fn get_module_to_import(&self) -> PyResult<String> {
         let interpreter = self.interpreter.borrow();
         if let Some(i) = interpreter.as_ref() {
             return match i {
-                ftd::Interpreter::StuckOnImport { module, .. } => Some(module.to_string()),
-                _ => None,
+                ftd::Interpreter::StuckOnImport { module, .. } => Ok(module.to_string()),
+                _ => Err(py_err(
+                    "ftd-sys: get_module_to_import, this section should not get called",
+                )),
             };
         }
-        None
+        Err(py_err(
+            "ftd-sys: get_module_to_import, wrong statement called",
+        ))
     }
 
-    pub fn continue_after_import(&self, id: &str, source: Option<String>) {
+    pub fn continue_after_import(&self, id: &str, source: Option<String>) -> PyResult<()> {
         let source = source.unwrap_or_else(|| "".to_string());
-        let interpreter = self.interpreter.replace(None).unwrap(); // TODO:
+        let interpreter = self.interpreter.replace(None).ok_or_else(|| {
+            py_err("ftd-sys: continue_after_import, interpreter object should exists")
+        })?;
         match interpreter {
             ftd::Interpreter::StuckOnImport { state, .. } => {
-                let new_interpreter = state.continue_after_import(id, source.as_str()).unwrap(); // TODO: remove unwrap
+                let new_interpreter = state
+                    .continue_after_import(id, source.as_str())
+                    .map_err(|err| py_err(&err.to_string()))?;
                 self.interpreter.replace(Some(new_interpreter));
             }
-            _ => {}
+            _ => {
+                return Err(py_err(
+                    "ftd-sys: continue_after_import, this section should not get called",
+                ))
+            }
         };
+        Ok(())
     }
 
-    pub fn get_processor_section(&self) -> Option<Section> {
+    pub fn get_processor_section(&self) -> PyResult<Section> {
         let interpreter = self.interpreter.borrow();
         if let Some(i) = interpreter.as_ref() {
             return match i {
-                ftd::Interpreter::StuckOnProcessor { section, .. } => Some(Section {
+                ftd::Interpreter::StuckOnProcessor { section, .. } => Ok(Section {
                     section: section.clone(),
-                }), // TODO: Remove unwrap
-                _ => None,
+                }),
+                _ => Err(py_err(
+                    "ftd-sys: get_processor_section, this section should not get called",
+                )),
             };
         }
-        None
+        Err(py_err(
+            "ftd-sys: get_processor_section, this statement should not get called",
+        ))
     }
 
-    // PyResult<Option<FtdValue>>
-    pub fn resolve_processor(&self, section: &Section) -> FtdValue {
+    pub fn resolve_processor(&self, section: &Section) -> PyResult<FtdValue> {
         let interpreter = self.interpreter.borrow();
-        let state = if let Some(i) = interpreter.as_ref() {
-            match i {
-                ftd::Interpreter::StuckOnProcessor { state, .. } => Some(state),
-                // TODO: Convert it into error
-                _ => unimplemented!("this should not get called something is wrong"),
-            }
-        } else {
-            None
-        };
-
-        let state = state.unwrap(); // TODO:
+        let state =
+            if let Some(i) = interpreter.as_ref() {
+                match i {
+                    ftd::Interpreter::StuckOnProcessor { state, .. } => state,
+                    _ => return Err(py_err(
+                        "ftd-sys: resolve_processor, this should not get called something is wrong",
+                    )),
+                }
+            } else {
+                return Err(py_err(
+                    "ftd-sys: resolve_processor, interpreter should exists",
+                ));
+            };
 
         let value = fpm::library::process_sync(
             &self.config,
@@ -108,36 +126,30 @@ impl Interpreter {
             &self.document_id,
             &state.tdoc(&mut Default::default()),
         )
-        .unwrap();
-        FtdValue { value }
+        .map_err(|err| py_err(&err.to_string()))?;
+        Ok(FtdValue { value })
     }
 
     pub fn resolve_import(&self, module: &str) -> PyResult<String> {
         use tokio::runtime::Runtime;
-        let rt = Runtime::new().unwrap();
+        let rt = Runtime::new().map_err(|err| py_err(&err.to_string()))?;
         rt.block_on(async {
             let mut library = self.library.borrow_mut();
             let mut interpreter = self.interpreter.borrow_mut();
             let state = if let Some(ref mut i) = *interpreter {
                 match i {
                     ftd::Interpreter::StuckOnImport { ref mut state, .. } => state,
-                    _ => {
-                        return Err(pyo3::exceptions::PyException::new_err(
-                            "only stuck_on_import expected",
-                        ))
-                    }
+                    _ => return Err(py_err("only stuck_on_import expected")),
                 }
             } else {
-                return Err(pyo3::exceptions::PyException::new_err(
-                    "interpreter_expected",
-                ));
+                return Err(py_err("interpreter_expected"));
             };
             println!("resolving import: {}", module);
             let mut d = fpm::resolve_import(&mut library, state, module)
                 .await
                 .map_err(|e| {
                     eprintln!("Error: fpm-resolve-import {:?}", e);
-                    pyo3::exceptions::PyException::new_err(e.to_string())
+                    py_err(&e.to_string())
                 })?;
             println!("import resolved: {}", module);
             if d.is_empty() {
@@ -148,16 +160,18 @@ impl Interpreter {
     }
 
     pub fn continue_after_processor(&self, value: FtdValue) -> PyResult<()> {
-        let interpreter = self.interpreter.replace(None).unwrap(); // TODO:
+        let interpreter = self.interpreter.replace(None).ok_or_else(|| {
+            py_err("ftd-sys: continue_after_processor, interpreter should exists")
+        })?;
         match interpreter {
             ftd::Interpreter::StuckOnProcessor { state, section } => {
                 let new_interpreter = state
                     .continue_after_processor(&section, value.value)
-                    .unwrap(); // TODO: remove unwrap
+                    .map_err(|err| py_err(&err.to_string()))?;
                 self.interpreter.replace(Some(new_interpreter));
             }
             _ => {
-                return Err(pyo3::exceptions::PyException::new_err(
+                return Err(py_err(
                     "continue-after-processor, this should not get called",
                 ))
             }
@@ -172,16 +186,10 @@ impl Interpreter {
                 ftd::Interpreter::StuckOnForeignVariable { variable, .. } => {
                     Ok(variable.to_string())
                 }
-                _ => {
-                    return Err(pyo3::exceptions::PyException::new_err(
-                        "stuck-on-fv, this should not get called",
-                    ))
-                }
+                _ => Err(py_err("stuck-on-fv, this should not get called")),
             };
         }
-        Err(pyo3::exceptions::PyException::new_err(
-            "stuck-on-fv, something bad wrong",
-        ))
+        Err(py_err("stuck-on-fv, something bad wrong"))
     }
 
     pub fn resolve_foreign_variable(
@@ -189,8 +197,7 @@ impl Interpreter {
         variable: String,
         base_url: Option<String>,
     ) -> PyResult<FtdValue> {
-        use tokio::runtime::Runtime;
-        let rt = Runtime::new().unwrap();
+        let rt = tokio::runtime::Runtime::new().map_err(|err| py_err(&err.to_string()))?;
 
         rt.block_on(async {
             let base_url = base_url.unwrap_or_else(|| "/".to_string());
@@ -200,15 +207,13 @@ impl Interpreter {
                 match i {
                     ftd::Interpreter::StuckOnForeignVariable { ref state, .. } => state,
                     _ => {
-                        return Err(pyo3::exceptions::PyException::new_err(
+                        return Err(py_err(
                             "resolve_foreign_variable only StuckOnForeignVariable expected",
                         ))
                     }
                 }
             } else {
-                return Err(pyo3::exceptions::PyException::new_err(
-                    "resolve_foreign_variable interpreter_expected",
-                ));
+                return Err(py_err("resolve_foreign_variable interpreter_expected"));
             };
             println!("resolving foreign variable: {}", variable);
             let d = fpm::resolve_foreign_variable2(
@@ -222,7 +227,7 @@ impl Interpreter {
             .await
             .map_err(|e| {
                 eprintln!("Error: fpm-foreign-variable {:?}", e);
-                pyo3::exceptions::PyException::new_err(e.to_string())
+                py_err(&e.to_string())
             })?;
             println!("foreign variable: {}", variable);
             Ok(FtdValue { value: d })
@@ -230,16 +235,18 @@ impl Interpreter {
     }
 
     pub fn continue_after_foreign_variable(&self, variable: &str, value: FtdValue) -> PyResult<()> {
-        let interpreter = self.interpreter.replace(None).unwrap(); // TODO:
+        let interpreter = self.interpreter.replace(None).ok_or_else(|| {
+            py_err("ftd-sys: continue_after_foreign_variable, interpreter should exists")
+        })?;
         match interpreter {
             ftd::Interpreter::StuckOnForeignVariable { state, .. } => {
                 let new_interpreter = state
                     .continue_after_variable(variable, value.value)
-                    .unwrap(); // TODO: remove unwrap
+                    .map_err(|err| py_err(&err.to_string()))?;
                 self.interpreter.replace(Some(new_interpreter));
             }
             _ => {
-                return Err(pyo3::exceptions::PyException::new_err(
+                return Err(py_err(
                     "continue-after-foreign-variable, this should not get called",
                 ))
             }
@@ -248,10 +255,10 @@ impl Interpreter {
     }
 
     // From Option to Result
-    pub fn render(&self) -> Option<String> {
+    pub fn render(&self) -> PyResult<String> {
         let interpreter = self.interpreter.borrow();
         if let Some(i) = interpreter.as_ref() {
-            match i {
+            return match i {
                 ftd::Interpreter::Done { document } => {
                     let doc_title = match &document.title() {
                         Some(x) => x.original.clone(),
@@ -266,41 +273,45 @@ impl Interpreter {
                         "/",
                         &ftd_doc,
                     );
-                    return Some(file_content);
+                    Ok(file_content)
                 }
-                // TODO: Convert it into error
-                _ => unimplemented!("this should not get called something is wrong"),
-            }
+                _ => Err(py_err("this should not get called something is wrong")),
+            };
         }
-        None
+        Ok("".to_string())
     }
 }
 
-fn fpm_config(root: Option<String>, data: Option<String>,) -> PyResult<Config> {
+fn py_err(err: &str) -> PyErr {
+    pyo3::exceptions::PyTypeError::new_err(err.to_string())
+}
+
+fn fpm_config(root: Option<String>, data: Option<String>) -> PyResult<Config> {
     use tokio::runtime::Runtime;
-    let rt = Runtime::new().unwrap();
+    let rt = Runtime::new().map_err(|err| py_err(&err.to_string()))?;
     rt.block_on(async {
         let mut config = fpm::Config::read2(root, false)
             .await
             .map(|config| Config { config })
             .map_err(|err| {
                 eprintln!("fpm_config {:?}", err);
-                pyo3::exceptions::PyTypeError::new_err(err.to_string())
+                py_err(&err.to_string())
             })?;
         if let Some(data) = data {
-            config.config.attach_data_string(data.as_str())
+            config
+                .config
+                .attach_data_string(data.as_str())
                 .map_err(|err| {
                     eprintln!("fpm_config attach_data_string {:?}", err);
-                    pyo3::exceptions::PyTypeError::new_err(err.to_string())
+                    py_err(&err.to_string())
                 })?;
         }
         Ok(config)
     })
 }
 
-// TODO: Result<String>
-fn file_content(config: &fpm::Config, id: &str) -> std::result::Result<String, String> {
-    let rt = tokio::runtime::Runtime::new().unwrap();
+fn file_content(config: &fpm::Config, id: &str) -> Result<String, String> {
+    let rt = tokio::runtime::Runtime::new().map_err(|err| err.to_string())?;
     rt.block_on(async {
         let file = config
             .get_file_by_id(id, &config.package)
@@ -321,12 +332,11 @@ fn interpret(
     data: Option<String>,
 ) -> PyResult<Interpreter> {
     let config = fpm_config(root, data)?;
-    let source = file_content(&config.config, id)
-        .map_err(|err| pyo3::exceptions::PyTypeError::new_err(err.to_string()))?;
+    let source = file_content(&config.config, id).map_err(|err| py_err(&err))?;
 
     let s = ftd::interpret(id, &source).map_err(|e| {
         eprintln!("{:?}", e);
-        pyo3::exceptions::PyTypeError::new_err(e.to_string())
+        py_err(&e.to_string())
     })?;
 
     Ok(Interpreter {
@@ -346,34 +356,36 @@ fn interpret(
 
 #[pyfunction]
 fn get_file_content(root: &str, path: &str) -> PyResult<(Vec<u8>, String)> {
-    let rt = tokio::runtime::Runtime::new().unwrap();
+    let rt = tokio::runtime::Runtime::new().map_err(|err| py_err(&err.to_string()))?;
     let mut config = fpm_config(Some(root.to_string()), None)?.config;
     rt.block_on(async {
         let f = match config.get_file_and_package_by_id(path).await {
             Ok(f) => f,
             Err(e) => {
                 eprintln!("ftd-sys error: path: {}, {:?}", path, e);
-                return Err(pyo3::exceptions::PyTypeError::new_err(e.to_string()))
+                return Err(py_err(&e.to_string()));
             }
         };
         config.current_document = Some(f.get_id());
 
         Ok(match f {
-            fpm::File::Ftd(document) => {
-                (document.content.into_bytes(), "ftd".to_string())
-            }
-            fpm::File::Code(document) => {
-                (document.content.into_bytes(), guess_mime_type(&document.id).as_ref().to_string())
-            }
-            fpm::File::Image(document) => {
-                (document.content, guess_mime_type(&document.id).as_ref().to_string())
-            }
-            fpm::File::Markdown(document) => {
-                (document.content.into_bytes(), guess_mime_type(&document.id).as_ref().to_string())
-            }
-            fpm::File::Static(document) => {
-                (document.content, guess_mime_type(&document.id).as_ref().to_string())
-            }
+            fpm::File::Ftd(document) => (document.content.into_bytes(), "ftd".to_string()),
+            fpm::File::Code(document) => (
+                document.content.into_bytes(),
+                guess_mime_type(&document.id).as_ref().to_string(),
+            ),
+            fpm::File::Image(document) => (
+                document.content,
+                guess_mime_type(&document.id).as_ref().to_string(),
+            ),
+            fpm::File::Markdown(document) => (
+                document.content.into_bytes(),
+                guess_mime_type(&document.id).as_ref().to_string(),
+            ),
+            fpm::File::Static(document) => (
+                document.content,
+                guess_mime_type(&document.id).as_ref().to_string(),
+            ),
         })
     })
 }
@@ -381,7 +393,6 @@ fn get_file_content(root: &str, path: &str) -> PyResult<(Vec<u8>, String)> {
 fn guess_mime_type(path: &str) -> mime_guess::Mime {
     mime_guess::from_path(path).first_or_octet_stream()
 }
-
 
 /// A Python module implemented in Rust.
 #[pymodule]
