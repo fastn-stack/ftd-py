@@ -162,9 +162,7 @@ impl Interpreter {
                 ))
             }
         };
-        Err(pyo3::exceptions::PyException::new_err(
-            "continue-after-processor, something bad wrong",
-        ))
+        Ok(())
     }
 
     pub fn get_foreign_variable_to_resolve(&self) -> PyResult<String> {
@@ -347,11 +345,10 @@ fn interpret(
 }
 
 #[pyfunction]
-fn get_file_content(path: &str) -> PyResult<(Vec<u8>, String)> {
+fn get_file_content(root: &str, path: &str) -> PyResult<(Vec<u8>, String)> {
     let rt = tokio::runtime::Runtime::new().unwrap();
-
+    let mut config = fpm_config(Some(root.to_string()), None)?.config;
     rt.block_on(async {
-        let mut config = fpm_config(None, None)?.config;
         let f = match config.get_file_and_package_by_id(path).await {
             Ok(f) => f,
             Err(e) => {
@@ -363,7 +360,7 @@ fn get_file_content(path: &str) -> PyResult<(Vec<u8>, String)> {
 
         Ok(match f {
             fpm::File::Ftd(document) => {
-                (document.content.into_bytes(), guess_mime_type(&document.id).as_ref().to_string())
+                (document.content.into_bytes(), "ftd".to_string())
             }
             fpm::File::Code(document) => {
                 (document.content.into_bytes(), guess_mime_type(&document.id).as_ref().to_string())

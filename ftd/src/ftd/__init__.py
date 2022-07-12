@@ -140,6 +140,7 @@ def interpret(
                 print("stuck_on_processor")
                 section = interpreter.get_processor_section()
                 processor_value = interpreter.resolve_processor(section)
+
                 """
                 If value returned from fpm processors is None, we will call to
                 python application processor 
@@ -155,3 +156,7 @@ def interpret(
     except Exception as e:
         print("Exception in interpreter: ", e)
         return e
+
+
+def file_content(root: str, path: str) -> (bytearray, str):
+    return ftd_sys.get_file_content(root, path)

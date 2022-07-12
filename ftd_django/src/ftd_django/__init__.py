@@ -8,7 +8,6 @@ import re
 from pathlib import Path
 
 import mimetypes
-import posixpath
 
 import ftd
 from ftd_django import helpers
@@ -31,7 +30,8 @@ class Template:
         # noinspection PyUnresolvedReferences
         (BASE, FPM_FOLDER) = helpers.validate_settings()
 
-        return ftd.render(self.template, root=FPM_FOLDER, base_url=BASE, **context)
+        return ftd.render(
+            self.template, root=FPM_FOLDER, base_url=BASE, **context)
 
 
 class TemplateBackend(BaseEngine):
@@ -63,21 +63,22 @@ def static():
     (BASE, FPM_FOLDER) = helpers.validate_settings()
 
     def view(_, path):
-
+        from django.http import HttpResponse
+        import traceback
         """
         If directory name is `ui` and package name `ui.com`, It will fail
         """
 
-        if path and path.startswith("-/"):
-            path = path.lstrip("-/")
-
-        # print(path, BASE, FPM_FOLDER)
-
-        path = posixpath.normpath(path)
-        fullpath = Path(helpers.safe_join(path))
-        if fullpath.is_dir():
-            return _serve(fullpath.join("index.html"))
-        return _serve(fullpath)
+        try:
+            (content, content_type) = ftd.file_content(FPM_FOLDER, path)
+            if content_type == "ftd":
+                context = {}
+                return HttpResponse(
+                    ftd.render(path, root=FPM_FOLDER, base_url=BASE, **context))
+            return FileResponse(content, content_type=content_type)
+        except Exception as e:
+            traceback.print_stack()
+            return HttpResponse(e, status=500)
 
     val = [re_path(r"^%s(?P<path>.*)$" % re.escape(BASE.lstrip("/")), view)]
     return val

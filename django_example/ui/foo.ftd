@@ -1,7 +1,26 @@
--- import: ui/assets as assets
+-- import: ft/assets as ft-assets
+
+-- import: ui/assets
+
+-- import: ft
+
+-- ft.page: Hello World
 
 -- ftd.text: Hello Foo
 
 
 -- ftd.image:
 src: $assets.files.1.jpg
+
+-- ftd.color black:
+light: black
+dark: black
+
+-- ftd.row:
+width: 200
+height: 200
+background-color: $black
+
+-- ftd.image:
+src: $ft-assets.files.static.header.hamburger.svg
+background-color: $black
