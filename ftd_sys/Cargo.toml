@@ -1,6 +1,6 @@
 [package]
 name = "ftd_sys"
-version = "0.1.1"
+version = "0.1.2"
 edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -11,11 +11,16 @@ crate-type = ["cdylib"]
 [dependencies]
 pyo3 = { version = "0.14", features = ["extension-module"] }
 pyo3-asyncio = { version = "0.14", features = ["tokio-runtime"] }
-fpm = { git = "https://github.com/FifthTry/fpm", rev = "f373fbc" }
-# fpm = { path = "../../fpm" }
+fpm = { git = "https://github.com/FifthTry/fpm", rev = "b7a5cc1" }
+ftd = { git = "https://github.com/FifthTry/ftd", rev = "1ea1c66" }
+#ftd = { path = "../../ftd" }
+#fpm = { path = "../../fpm" }
 serde = { version = "1", features = ["derive"] }
 serde_derive = "1.0"
 serde_json = "1"
+futures = "0.3"
+tokio = "1.19.2"
+mime_guess = "2"
 
 # This is added to resolve
 # Error: "failed to run custom build command for `openssl-sys v0.9.72`"
