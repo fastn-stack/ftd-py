@@ -31,15 +31,11 @@ struct Interpreter {
 
 #[pymethods]
 impl Interpreter {
-    pub fn hello(&self, name: String) -> String {
-        println!("Printing name: {}", name);
-        name
-    }
 
-    pub fn state_name(&self) -> Option<String> {
+    pub fn state_name(&self) -> PyResult<String> {
         let interpreter = self.interpreter.borrow();
         if let Some(i) = interpreter.as_ref() {
-            return Some(match i {
+            return Ok(match i {
                 ftd::Interpreter::StuckOnProcessor { .. } => "stuck_on_processor".to_string(),
                 ftd::Interpreter::StuckOnForeignVariable { .. } => {
                     "stuck_on_foreign_variable".to_string()
@@ -48,7 +44,7 @@ impl Interpreter {
                 ftd::Interpreter::Done { .. } => "done".to_string(),
             });
         }
-        None
+        Err(py_err("ftd-sys:Interpreter:state_name this should not get called"))
     }
 
     pub fn get_module_to_import(&self) -> PyResult<String> {
