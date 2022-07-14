@@ -12,8 +12,8 @@ crate-type = ["cdylib"]
 pyo3 = { version = "0.14", features = ["extension-module"] }
 pyo3-asyncio = { version = "0.14", features = ["tokio-runtime"] }
 #fpm = { git = "https://github.com/FifthTry/fpm", rev = "c877167" }
-#ftd = { path = "../../ftd" }
 ftd = { git = "https://github.com/FifthTry/ftd", rev = "a8e94b72" }
+#ftd = { path = "../../ftd" }
 fpm = { path = "../../fpm" }
 serde = { version = "1", features = ["derive"] }
 serde_derive = "1.0"

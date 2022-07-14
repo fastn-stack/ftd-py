@@ -65,10 +65,6 @@ def static():
         from django.http import HttpResponse
         import traceback
 
-        """
-        If directory name is `ui` and package name `ui.com`, It will fail
-        """
-
         try:
             (content, content_type) = ftd.file_content(FPM_FOLDER, path)
             if content_type == "ftd":
