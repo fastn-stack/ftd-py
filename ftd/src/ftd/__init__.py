@@ -108,6 +108,7 @@ def interpret(
             print("in ftd interpreter-loop")
             state = interpreter.state_name()
             if state == "done":
+                print("interpreter-loop done")
                 return interpreter.render()
 
             if state == "stuck_on_import":
@@ -157,6 +158,7 @@ def interpret(
                 interpreter.continue_after_processor(processor_value)
                 print("stuck_on_processor done")
 
+            print("interpreter-loop complete")
     except Exception as e:
         print("Exception in interpreter: ", e)
         return e

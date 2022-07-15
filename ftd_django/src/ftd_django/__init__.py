@@ -72,7 +72,7 @@ def static():
                 return HttpResponse(
                     ftd.render(path, root=FPM_FOLDER, base_url=BASE, **context)
                 )
-            return FileResponse(content, content_type=content_type)
+            return HttpResponse(bytes(content), content_type=content_type)
         except Exception as e:
             traceback.print_stack()
             return HttpResponse(e, status=500)
