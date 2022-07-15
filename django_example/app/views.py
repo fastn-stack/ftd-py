@@ -1,8 +1,8 @@
 import json
-
 import django.http
 from django.views.generic import FormView, TemplateView
 from django.views.decorators.csrf import csrf_exempt
+
 
 # Create your views here.
 
@@ -25,12 +25,10 @@ class IndexView(TemplateView):
 
 def get_data(_):
     from django.http import JsonResponse
+
     response_data = {
-        "data": {
-            "apis#name": "Abrar Khan",
-            "apis#age": 28
-        },
-        "success": True
+        "data": {"apis#name": "Abrar Khan", "apis#age": 28},
+        "success": True,
     }
     return JsonResponse(response_data, status=200)
 
@@ -38,6 +36,7 @@ def get_data(_):
 @csrf_exempt
 def post_data(req: django.http.HttpRequest):
     from django.http import JsonResponse
+
     body = json.loads(req.body)
     print(body)
     return JsonResponse(
@@ -45,4 +44,6 @@ def post_data(req: django.http.HttpRequest):
             "data": {
                 "apis#post-done": True,
             }
-        }, status=200)
+        },
+        status=200,
+    )
