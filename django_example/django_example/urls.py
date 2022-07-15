@@ -21,5 +21,7 @@ import ftd_django
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path("api/get-data", views.get_data),
+    path("api/post-data", views.post_data),
     path("", views.IndexView.as_view()),
 ] + ftd_django.static()
