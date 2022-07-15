@@ -1,12 +1,4 @@
 -- ftd.column foo:
-integer count: 0
-
---- ftd.integer:
-value: $count
-
---- ftd.text: increment counter
-$on-click$: increment $count
-
 
 --- ftd.text: GET Profile Data
 $on-click$: message-host $get-api
@@ -28,7 +20,6 @@ $always-include$: true
 
 -- integer age: 0
 $always-include$: true
-
 
 -- object get-api:
 function: http
