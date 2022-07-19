@@ -8,9 +8,6 @@
 
 -- ftd.text: Hello Foo
 
--- ftd.text: $message
-color: $white
-
 -- ftd.image:
 src: $assets.files.1.jpg
 
@@ -23,12 +20,12 @@ light: white
 dark: white
 
 
--- ftd.row:
-width: 200
-height: 200
-background-color: $black
+-- ftd.column:
+width: 500
+height: 500
+background-color: $white
 
--- ftd.image:
+/-- ftd.image:
 src: $ft-assets.files.static.header.hamburger.svg
 background-color: $black
 
@@ -36,3 +33,39 @@ background-color: $black
 $processor$: hello_world
 
 "Default Message"
+
+-- ftd.text: $message
+color: $black
+
+
+
+-- todo_list:
+items: $items
+
+-- record todo_item:
+string task_name:
+string status:
+
+-- todo_item list items:
+$processor$: todo_data
+
+-- ftd.column todo_list:
+todo_item list items:
+
+--- print-item:
+$loop$: $items as $item
+status: $item.status
+task_name: $item.task_name
+
+-- ftd.row print-item:
+spacing: 24
+string status:
+string task_name:
+
+--- ftd.text: $task_name
+color: $black
+width: 300
+
+--- ftd.text: $status
+color: $black
+width: 100

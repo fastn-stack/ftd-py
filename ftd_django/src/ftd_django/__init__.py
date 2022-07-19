@@ -1,3 +1,5 @@
+import json
+
 from django.template.backends.base import BaseEngine
 from django.template.backends.utils import csrf_token_lazy
 from django.template import TemplateDoesNotExist
@@ -87,11 +89,35 @@ def static():
     return val
 
 
-def temp_handle_processor(doc_id, section):
+def temp_handle_processor(doc_id, section, interpreter=None):
     print("processor called")
+
     name = section.header_string(doc_id, "$processor$")
     print("processor section name", name)
+
     if name == "hello_world":
-        return ftd.to_ftd_string("This is coming from processor")
+        return ftd.string_to_value("This is coming from processor")
+
+    if name == "todo_data":
+        data = [
+            {
+                "task_name": "Task Name",
+                "status": "Status"
+            },
+            {
+                "task_name": "ftd application processor for toc data",
+                "status": "Done"
+            },
+            {
+                "task_name": "call an api to update todo list",
+                "status": "In Progress"
+            },
+            {
+                "task_name": "documentation for all",
+                "status": "Pending"
+            }
+        ]
+        print("passing_data: ", json.dumps(data))
+        return ftd.object_to_value(json.dumps(data), section, interpreter)
 
     return None
