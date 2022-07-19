@@ -1047,7 +1047,7 @@ dependencies = [
  "colorize",
  "diffy",
  "fluent",
- "ftd 0.1.18 (git+https://github.com/FifthTry/ftd?rev=b89c9fd7)",
+ "ftd",
  "futures 0.3.21",
  "home",
  "ignore",
@@ -1070,27 +1070,6 @@ dependencies = [
  "url 2.2.2",
  "vergen",
  "zip",
-]
-
-[[package]]
-name = "ftd"
-version = "0.1.18"
-source = "git+https://github.com/FifthTry/ftd?rev=5f161b0f#5f161b0ff040f916bd591301607f315c8f790595"
-dependencies = [
- "comrak",
- "css-color-parser",
- "failure",
- "format_num",
- "include_dir",
- "indoc 1.0.4",
- "itertools",
- "lazy_static 1.4.0",
- "regex",
- "serde",
- "serde_json",
- "slug",
- "syntect",
- "thiserror",
 ]
 
 [[package]]
@@ -1119,7 +1098,7 @@ name = "ftd_sys"
 version = "0.1.2"
 dependencies = [
  "fpm",
- "ftd 0.1.18 (git+https://github.com/FifthTry/ftd?rev=5f161b0f)",
+ "ftd",
  "futures 0.3.21",
  "mime_guess",
  "openssl",
