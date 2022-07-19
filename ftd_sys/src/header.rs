@@ -5,12 +5,13 @@ use pyo3::prelude::*;
 
 #[pyclass]
 pub struct Header {
-    header: ftd::p1::Header
+    header: ftd::p1::Header,
 }
 
 impl Header {
     pub fn string(&self, doc_id: &str, line_number: usize, name: &str) -> PyResult<String> {
-        self.header.string(doc_id, line_number, name)
+        self.header
+            .string(doc_id, line_number, name)
             .map_err(|e| crate::py_err(&e.to_string()))
     }
 }

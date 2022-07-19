@@ -1034,7 +1034,6 @@ dependencies = [
 [[package]]
 name = "fpm"
 version = "0.1.10"
-source = "git+https://github.com/FifthTry/fpm?rev=c9c627c#c9c627cc18fd6a736ec48af1795727794179e5a9"
 dependencies = [
  "actix-files",
  "actix-web",
@@ -1075,7 +1074,6 @@ dependencies = [
 [[package]]
 name = "ftd"
 version = "0.1.18"
-source = "git+https://github.com/FifthTry/ftd?rev=5f161b0f#5f161b0ff040f916bd591301607f315c8f790595"
 dependencies = [
  "comrak",
  "css-color-parser",

@@ -1,7 +1,7 @@
 use pyo3::prelude::*;
 
-pub mod section;
 pub mod header;
+pub mod section;
 
 use section::{Section, SubSection};
 
@@ -96,7 +96,7 @@ impl Interpreter {
         ))
     }
 
-    pub fn resolve_processor(&self, section: &Section) -> PyResult<FtdValue> {
+    pub fn resolve_processor(&self, section: &Section) -> PyResult<Option<FtdValue>> {
         let interpreter = self.interpreter.borrow();
         let state =
             if let Some(i) = interpreter.as_ref() {
@@ -112,14 +112,22 @@ impl Interpreter {
                 ));
             };
 
-        let value = fpm::library::process_sync(
+        let value = match fpm::library::process_sync(
             &self.config,
             &section.section,
             &self.document_id,
             &state.tdoc(&mut Default::default()),
-        )
-        .map_err(|err| py_err(&err.to_string()))?;
-        Ok(FtdValue { value })
+        ) {
+            Ok(value) => value,
+            Err(e) => {
+                return match e {
+                    ftd::p1::Error::NotFound { .. } => Ok(None),
+                    _ => Err(py_err(&e.to_string())),
+                }
+            }
+        };
+
+        Ok(Some(FtdValue { value }))
     }
 
     pub fn resolve_import(&self, module: &str) -> PyResult<String> {
@@ -386,11 +394,22 @@ fn guess_mime_type(path: &str) -> mime_guess::Mime {
     mime_guess::from_path(path).first_or_octet_stream()
 }
 
+#[pyfunction]
+fn to_ftd_string(value: String) -> PyResult<FtdValue> {
+    Ok(FtdValue {
+        value: ftd::Value::String {
+            text: value,
+            source: ftd::TextSource::Default,
+        },
+    })
+}
+
 /// A Python module implemented in Rust.
 #[pymodule]
 fn ftd_sys(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(interpret, m)?)?;
     m.add_function(wrap_pyfunction!(get_file_content, m)?)?;
+    m.add_function(wrap_pyfunction!(to_ftd_string, m)?)?;
     Ok(())
 }
 

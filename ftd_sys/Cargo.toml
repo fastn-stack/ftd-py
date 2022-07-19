@@ -11,10 +11,10 @@ crate-type = ["cdylib"]
 [dependencies]
 pyo3 = { version = "0.14", features = ["extension-module"] }
 pyo3-asyncio = { version = "0.14", features = ["tokio-runtime"] }
-fpm = { git = "https://github.com/FifthTry/fpm", rev = "c9c627c" }
-ftd = { git = "https://github.com/FifthTry/ftd", rev = "5f161b0f" }
-#ftd = { path = "../../ftd" }
-#fpm = { path = "../../fpm" }
+#fpm = { git = "https://github.com/FifthTry/fpm", rev = "c9c627c" }
+#ftd = { git = "https://github.com/FifthTry/ftd", rev = "5f161b0f" }
+ftd = { path = "../../ftd" }
+fpm = { path = "../../fpm" }
 serde = { version = "1", features = ["derive"] }
 serde_derive = "1.0"
 serde_json = "1"
