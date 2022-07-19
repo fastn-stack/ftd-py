@@ -3,7 +3,7 @@ use pyo3::prelude::*;
 pub mod header;
 pub mod section;
 
-use section::{Section, SubSection};
+use section::Section;
 
 #[pyclass]
 pub struct Config {
@@ -395,7 +395,7 @@ fn guess_mime_type(path: &str) -> mime_guess::Mime {
 }
 
 #[pyfunction]
-fn to_ftd_string(value: String) -> PyResult<FtdValue> {
+fn string_to_value(value: String) -> PyResult<FtdValue> {
     Ok(FtdValue {
         value: ftd::Value::String {
             text: value,
@@ -404,12 +404,49 @@ fn to_ftd_string(value: String) -> PyResult<FtdValue> {
     })
 }
 
+#[pyfunction]
+fn object_to_value(
+    data: String,
+    section: &Section,
+    interpreter: &Interpreter,
+) -> PyResult<FtdValue> {
+    let interpreter = interpreter.interpreter.borrow();
+    let state = {
+        if let Some(i) = interpreter.as_ref() {
+            match i {
+                ftd::Interpreter::StuckOnProcessor { state, .. } => state,
+                ftd::Interpreter::StuckOnForeignVariable { state, .. } => state,
+                ftd::Interpreter::StuckOnImport { state, .. } => state,
+                ftd::Interpreter::Done { .. } => {
+                    return Err(py_err(
+                        "ftd-sys: object_to_value, done should not get called",
+                    ));
+                }
+            }
+        } else {
+            return Err(py_err(
+                "ftd-sys: object_to_value, interpreter should not be none",
+            ));
+        }
+    };
+    let mut d = Default::default();
+    let doc = state.tdoc(&mut d);
+    println!("data: {}", data);
+    println!("section: {}", &section.section.to_string());
+    let data = &serde_json::from_str::<serde_json::Value>(&data)
+        .map_err(|e| py_err(&format!("ftd-sys: object_to_value, err: {}", e)))?;
+    let value = doc.from_json(&data, &section.section).expect("");
+    println!("object_to_value is done");
+    Ok(FtdValue { value })
+}
+
 /// A Python module implemented in Rust.
 #[pymodule]
 fn ftd_sys(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(interpret, m)?)?;
     m.add_function(wrap_pyfunction!(get_file_content, m)?)?;
-    m.add_function(wrap_pyfunction!(to_ftd_string, m)?)?;
+    m.add_function(wrap_pyfunction!(string_to_value, m)?)?;
+    m.add_function(wrap_pyfunction!(object_to_value, m)?)?;
     Ok(())
 }
 
