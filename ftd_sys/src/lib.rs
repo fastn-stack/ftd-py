@@ -1,6 +1,7 @@
 use pyo3::prelude::*;
 
 pub mod section;
+pub mod header;
 
 use section::{Section, SubSection};
 
