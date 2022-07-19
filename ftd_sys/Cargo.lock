@@ -1034,6 +1034,7 @@ dependencies = [
 [[package]]
 name = "fpm"
 version = "0.1.10"
+source = "git+https://github.com/FifthTry/fpm?rev=161624b#161624b56229bb594035395577416cdddc2afd3f"
 dependencies = [
  "actix-files",
  "actix-web",
@@ -1046,7 +1047,7 @@ dependencies = [
  "colorize",
  "diffy",
  "fluent",
- "ftd",
+ "ftd 0.1.18 (git+https://github.com/FifthTry/ftd?rev=b89c9fd7)",
  "futures 0.3.21",
  "home",
  "ignore",
@@ -1074,6 +1075,28 @@ dependencies = [
 [[package]]
 name = "ftd"
 version = "0.1.18"
+source = "git+https://github.com/FifthTry/ftd?rev=5f161b0f#5f161b0ff040f916bd591301607f315c8f790595"
+dependencies = [
+ "comrak",
+ "css-color-parser",
+ "failure",
+ "format_num",
+ "include_dir",
+ "indoc 1.0.4",
+ "itertools",
+ "lazy_static 1.4.0",
+ "regex",
+ "serde",
+ "serde_json",
+ "slug",
+ "syntect",
+ "thiserror",
+]
+
+[[package]]
+name = "ftd"
+version = "0.1.18"
+source = "git+https://github.com/FifthTry/ftd?rev=b89c9fd7#b89c9fd7a9bdc8f3d3de1e553b0db0729dcf4d9e"
 dependencies = [
  "comrak",
  "css-color-parser",
@@ -1096,7 +1119,7 @@ name = "ftd_sys"
 version = "0.1.2"
 dependencies = [
  "fpm",
- "ftd",
+ "ftd 0.1.18 (git+https://github.com/FifthTry/ftd?rev=5f161b0f)",
  "futures 0.3.21",
  "mime_guess",
  "openssl",
