@@ -1,18 +1,12 @@
 use pyo3::prelude::*;
 
-#[pyclass]
-pub struct Section {
-    pub section: ftd::p1::Section,
-}
+pub mod section;
+
+use section::{Section, SubSection};
 
 #[pyclass]
 pub struct Config {
     pub config: fpm::Config,
-}
-
-#[pyclass]
-pub struct SubSection {
-    pub section: ftd::p1::SubSection,
 }
 
 #[pyclass]
@@ -31,7 +25,6 @@ struct Interpreter {
 
 #[pymethods]
 impl Interpreter {
-
     pub fn state_name(&self) -> PyResult<String> {
         let interpreter = self.interpreter.borrow();
         if let Some(i) = interpreter.as_ref() {
@@ -44,7 +37,9 @@ impl Interpreter {
                 ftd::Interpreter::Done { .. } => "done".to_string(),
             });
         }
-        Err(py_err("ftd-sys:Interpreter:state_name this should not get called"))
+        Err(py_err(
+            "ftd-sys:Interpreter:state_name this should not get called",
+        ))
     }
 
     pub fn get_module_to_import(&self) -> PyResult<String> {
