@@ -154,7 +154,7 @@ def interpret(
                 if not processor_value:
                     if not handle_processor:
                         raise Exception("can not handle processor: %s" % section)
-                    processor_value = handle_processor(id, section, interpreter=interpreter)
+                    processor_value = handle_processor(id, section, interpreter)
 
                 interpreter.continue_after_processor(processor_value)
                 print("stuck_on_processor done")
