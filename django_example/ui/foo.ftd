@@ -21,7 +21,7 @@ dark: white
 
 
 -- ftd.column:
-width: 500
+width: fill
 height: 500
 background-color: $white
 
@@ -58,6 +58,7 @@ status: $item.status
 task_name: $item.task_name
 
 -- optional string input_status:
+$always-include$: true
 
 -- ftd.row print-item:
 spacing: 24
@@ -72,6 +73,10 @@ width: 300
 color: $black
 width: 100
 
+--- ftd.input:
+$on-change$: $input_status=$VALUE
+border-color: $black
+placeholder: Enter Status
 
 --- ftd.text: Update Status
 color: $black
@@ -81,4 +86,4 @@ $on-click$: message-host $update-status-api
 function: http
 method: post
 url: /api/update-status
-string task_name: $input_status
+status: $input_status

@@ -1,7 +1,7 @@
 from django.core.exceptions import ImproperlyConfigured, SuspiciousFileOperation
 from django.utils.module_loading import import_string
 
-from typing import Optional
+from typing import Optional, List
 from os.path import abspath, dirname, join, normcase, sep
 
 
@@ -91,8 +91,6 @@ def safe_join(base, *paths):
 
 PROCESSORS = {}
 
-from typing import List
-
 
 def initialize_processors(processors: List[str]):
     for p in processors:
@@ -101,8 +99,6 @@ def initialize_processors(processors: List[str]):
 
 
 def processor(doc_id, section, interpreter):
-
-    print(PROCESSORS)
 
     name = section.header_string(doc_id, "$processor$")
     if name in PROCESSORS:

@@ -23,6 +23,6 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/get-data", views.get_data),
     path("api/post-data", views.post_data),
-    path("api/update-todo", views.update_todo),
+    path("api/update-status", views.update_todo),
     path("", views.IndexView.as_view()),
 ] + ftd_django.static()
