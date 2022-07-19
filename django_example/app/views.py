@@ -2,9 +2,38 @@ import json
 import django.http
 from django.views.generic import FormView, TemplateView
 from django.views.decorators.csrf import csrf_exempt
-
+import ftd
 
 # Create your views here.
+
+
+def handle_processor(doc_id, section, interpreter=None):
+    name = section.header_string(doc_id, "$processor$")
+    if name == "hello_world":
+        return ftd.string_to_value("This is coming from processor")
+
+    if name == "todo_data":
+        data = [
+            {
+                "task_name": "Task Name",
+                "status": "Status"
+            },
+            {
+                "task_name": "ftd application processor for toc data",
+                "status": "Done"
+            },
+            {
+                "task_name": "call an api to update todo list",
+                "status": "In Progress"
+            },
+            {
+                "task_name": "documentation for all",
+                "status": "Pending"
+            }
+        ]
+        return ftd.object_to_value(json.dumps(data), section, interpreter)
+
+    return None
 
 
 class IndexView(TemplateView):
@@ -20,7 +49,11 @@ class IndexView(TemplateView):
         from django.http import HttpResponse
 
         template = loader.get_template(self.template_name)
-        return HttpResponse(template.render(self.get_context_data(), request))
+        return HttpResponse(template.render(
+            self.get_context_data(),
+            request,
+            handle_processor=handle_processor
+        ))
 
 
 def get_data(_):

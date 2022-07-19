@@ -19,7 +19,7 @@ class Template:
     def __init__(self, template):
         self.template = template
 
-    def render(self, context=None, request=None):
+    def render(self, context=None, request=None, handle_processor=None):
         if context is None:
             context = {}
         if request is not None:
@@ -36,7 +36,7 @@ class Template:
             self.template,
             root=FPM_FOLDER,
             base_url=BASE,
-            handle_processor=temp_handle_processor,
+            handle_processor=handle_processor,
             **context
         )
 
@@ -65,7 +65,7 @@ def _serve(fullpath: Path):
     return response
 
 
-def static():
+def static(handle_processor=None):
     # noinspection PyUnresolvedReferences
     (BASE, FPM_FOLDER) = helpers.validate_settings()
 
@@ -78,7 +78,13 @@ def static():
             if content_type == "ftd":
                 context = {}
                 return HttpResponse(
-                    ftd.render(path, root=FPM_FOLDER, base_url=BASE, **context)
+                    ftd.render(
+                        path,
+                        root=FPM_FOLDER,
+                        base_url=BASE,
+                        handle_processor=handle_processor,
+                        **context
+                    )
                 )
             return HttpResponse(bytes(content), content_type=content_type)
         except Exception as e:
@@ -87,37 +93,3 @@ def static():
 
     val = [re_path(r"^%s(?P<path>.*)$" % re.escape(BASE.lstrip("/")), view)]
     return val
-
-
-def temp_handle_processor(doc_id, section, interpreter=None):
-    print("processor called")
-
-    name = section.header_string(doc_id, "$processor$")
-    print("processor section name", name)
-
-    if name == "hello_world":
-        return ftd.string_to_value("This is coming from processor")
-
-    if name == "todo_data":
-        data = [
-            {
-                "task_name": "Task Name",
-                "status": "Status"
-            },
-            {
-                "task_name": "ftd application processor for toc data",
-                "status": "Done"
-            },
-            {
-                "task_name": "call an api to update todo list",
-                "status": "In Progress"
-            },
-            {
-                "task_name": "documentation for all",
-                "status": "Pending"
-            }
-        ]
-        print("passing_data: ", json.dumps(data))
-        return ftd.object_to_value(json.dumps(data), section, interpreter)
-
-    return None

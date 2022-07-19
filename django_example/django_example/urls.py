@@ -24,4 +24,4 @@ urlpatterns = [
     path("api/get-data", views.get_data),
     path("api/post-data", views.post_data),
     path("", views.IndexView.as_view()),
-] + ftd_django.static()
+] + ftd_django.static(handle_processor=views.handle_processor)
