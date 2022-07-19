@@ -435,6 +435,8 @@ fn object_to_value(
     println!("section: {}", &section.section.to_string());
     let data = &serde_json::from_str::<serde_json::Value>(&data)
         .map_err(|e| py_err(&format!("ftd-sys: object_to_value, err: {}", e)))?;
+    // TODO: remove expect
+    // replace from_json to from_pyany
     let value = doc.from_json(&data, &section.section).expect("");
     println!("object_to_value is done");
     Ok(FtdValue { value })

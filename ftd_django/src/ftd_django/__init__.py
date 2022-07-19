@@ -1,5 +1,3 @@
-import json
-
 from django.template.backends.base import BaseEngine
 from django.template.backends.utils import csrf_token_lazy
 from django.template import TemplateDoesNotExist
@@ -19,7 +17,7 @@ class Template:
     def __init__(self, template):
         self.template = template
 
-    def render(self, context=None, request=None, handle_processor=None):
+    def render(self, context=None, request=None):
         if context is None:
             context = {}
         if request is not None:
@@ -36,7 +34,7 @@ class Template:
             self.template,
             root=FPM_FOLDER,
             base_url=BASE,
-            handle_processor=handle_processor,
+            handle_processor=helpers.processor,
             **context
         )
 
@@ -65,7 +63,7 @@ def _serve(fullpath: Path):
     return response
 
 
-def static(handle_processor=None):
+def static():
     # noinspection PyUnresolvedReferences
     (BASE, FPM_FOLDER) = helpers.validate_settings()
 
@@ -82,7 +80,7 @@ def static(handle_processor=None):
                         path,
                         root=FPM_FOLDER,
                         base_url=BASE,
-                        handle_processor=handle_processor,
+                        handle_processor=helpers.processor,
                         **context
                     )
                 )
@@ -93,3 +91,14 @@ def static(handle_processor=None):
 
     val = [re_path(r"^%s(?P<path>.*)$" % re.escape(BASE.lstrip("/")), view)]
     return val
+
+
+def processor(fn_or_str):
+    if isinstance(fn_or_str, str):
+        def f(fn):
+            fn.processor_name = fn_or_str
+            return fn
+        return f
+    else:
+        fn_or_str.processor_name = fn_or_str.__name__
+        return fn_or_str

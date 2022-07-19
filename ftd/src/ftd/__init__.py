@@ -174,4 +174,5 @@ def string_to_value(value: str):
 
 
 def object_to_value(value: str, section, interpreter):
-    return ftd_sys.object_to_value(value, section, interpreter)
+    import json
+    return ftd_sys.object_to_value(json.dumps(value), section, interpreter)

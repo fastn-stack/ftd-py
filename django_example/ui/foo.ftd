@@ -57,6 +57,8 @@ $loop$: $items as $item
 status: $item.status
 task_name: $item.task_name
 
+-- optional string input_status:
+
 -- ftd.row print-item:
 spacing: 24
 string status:
@@ -69,3 +71,14 @@ width: 300
 --- ftd.text: $status
 color: $black
 width: 100
+
+
+--- ftd.text: Update Status
+color: $black
+$on-click$: message-host $update-status-api
+
+-- object update-status-api:
+function: http
+method: post
+url: /api/update-status
+string task_name: $input_status
