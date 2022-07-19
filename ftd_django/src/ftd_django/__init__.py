@@ -30,7 +30,13 @@ class Template:
         # noinspection PyUnresolvedReferences
         (BASE, FPM_FOLDER) = helpers.validate_settings()
 
-        return ftd.render(self.template, root=FPM_FOLDER, base_url=BASE, **context)
+        return ftd.render(
+            self.template,
+            root=FPM_FOLDER,
+            base_url=BASE,
+            handle_processor=temp_handle_processor,
+            **context
+        )
 
 
 class TemplateBackend(BaseEngine):
@@ -79,3 +85,13 @@ def static():
 
     val = [re_path(r"^%s(?P<path>.*)$" % re.escape(BASE.lstrip("/")), view)]
     return val
+
+
+def temp_handle_processor(doc_id, section):
+    print("processor called")
+    name = section.header_string(doc_id, "$processor$")
+    print("processor section name", name)
+    if name == "hello_world":
+        return ftd.to_ftd_string("This is coming from processor")
+
+    return None

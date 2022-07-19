@@ -8,6 +8,8 @@
 
 -- ftd.text: Hello Foo
 
+-- ftd.text: $message
+color: $white
 
 -- ftd.image:
 src: $assets.files.1.jpg
@@ -15,6 +17,11 @@ src: $assets.files.1.jpg
 -- ftd.color black:
 light: black
 dark: black
+
+-- ftd.color white:
+light: white
+dark: white
+
 
 -- ftd.row:
 width: 200
@@ -24,3 +31,8 @@ background-color: $black
 -- ftd.image:
 src: $ft-assets.files.static.header.hamburger.svg
 background-color: $black
+
+-- string message:
+$processor$: hello_world
+
+"Default Message"
