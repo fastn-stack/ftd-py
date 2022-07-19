@@ -1,18 +1,13 @@
 use pyo3::prelude::*;
 
-#[pyclass]
-pub struct Section {
-    pub section: ftd::p1::Section,
-}
+pub mod header;
+pub mod section;
+
+use section::Section;
 
 #[pyclass]
 pub struct Config {
     pub config: fpm::Config,
-}
-
-#[pyclass]
-pub struct SubSection {
-    pub section: ftd::p1::SubSection,
 }
 
 #[pyclass]
@@ -31,7 +26,6 @@ struct Interpreter {
 
 #[pymethods]
 impl Interpreter {
-
     pub fn state_name(&self) -> PyResult<String> {
         let interpreter = self.interpreter.borrow();
         if let Some(i) = interpreter.as_ref() {
@@ -44,7 +38,9 @@ impl Interpreter {
                 ftd::Interpreter::Done { .. } => "done".to_string(),
             });
         }
-        Err(py_err("ftd-sys:Interpreter:state_name this should not get called"))
+        Err(py_err(
+            "ftd-sys:Interpreter:state_name this should not get called",
+        ))
     }
 
     pub fn get_module_to_import(&self) -> PyResult<String> {
@@ -100,7 +96,7 @@ impl Interpreter {
         ))
     }
 
-    pub fn resolve_processor(&self, section: &Section) -> PyResult<FtdValue> {
+    pub fn resolve_processor(&self, section: &Section) -> PyResult<Option<FtdValue>> {
         let interpreter = self.interpreter.borrow();
         let state =
             if let Some(i) = interpreter.as_ref() {
@@ -116,14 +112,22 @@ impl Interpreter {
                 ));
             };
 
-        let value = fpm::library::process_sync(
+        let value = match fpm::library::process_sync(
             &self.config,
             &section.section,
             &self.document_id,
             &state.tdoc(&mut Default::default()),
-        )
-        .map_err(|err| py_err(&err.to_string()))?;
-        Ok(FtdValue { value })
+        ) {
+            Ok(value) => value,
+            Err(e) => {
+                return match e {
+                    ftd::p1::Error::NotFound { .. } => Ok(None),
+                    _ => Err(py_err(&e.to_string())),
+                }
+            }
+        };
+
+        Ok(Some(FtdValue { value }))
     }
 
     pub fn resolve_import(&self, module: &str) -> PyResult<String> {
@@ -390,11 +394,60 @@ fn guess_mime_type(path: &str) -> mime_guess::Mime {
     mime_guess::from_path(path).first_or_octet_stream()
 }
 
+#[pyfunction]
+fn string_to_value(value: String) -> PyResult<FtdValue> {
+    Ok(FtdValue {
+        value: ftd::Value::String {
+            text: value,
+            source: ftd::TextSource::Default,
+        },
+    })
+}
+
+#[pyfunction]
+fn object_to_value(
+    data: String,
+    section: &Section,
+    interpreter: &Interpreter,
+) -> PyResult<FtdValue> {
+    let interpreter = interpreter.interpreter.borrow();
+    let state = {
+        if let Some(i) = interpreter.as_ref() {
+            match i {
+                ftd::Interpreter::StuckOnProcessor { state, .. } => state,
+                ftd::Interpreter::StuckOnForeignVariable { state, .. } => state,
+                ftd::Interpreter::StuckOnImport { state, .. } => state,
+                ftd::Interpreter::Done { .. } => {
+                    return Err(py_err(
+                        "ftd-sys: object_to_value, done should not get called",
+                    ));
+                }
+            }
+        } else {
+            return Err(py_err(
+                "ftd-sys: object_to_value, interpreter should not be none",
+            ));
+        }
+    };
+    let mut d = Default::default();
+    let doc = state.tdoc(&mut d);
+    let data = &serde_json::from_str::<serde_json::Value>(&data)
+        .map_err(|e| py_err(&format!("ftd-sys: object_to_value, err: {}", e)))?;
+    // TODO: remove expect
+    // replace from_json to from_pyany
+    let value = doc
+        .from_json(&data, &section.section)
+        .map_err(|e| py_err(&format!("ftd-sys: object_to_value, err: {:?}", e)))?;
+    Ok(FtdValue { value })
+}
+
 /// A Python module implemented in Rust.
 #[pymodule]
 fn ftd_sys(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(interpret, m)?)?;
     m.add_function(wrap_pyfunction!(get_file_content, m)?)?;
+    m.add_function(wrap_pyfunction!(string_to_value, m)?)?;
+    m.add_function(wrap_pyfunction!(object_to_value, m)?)?;
     Ok(())
 }
 

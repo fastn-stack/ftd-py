@@ -30,7 +30,13 @@ class Template:
         # noinspection PyUnresolvedReferences
         (BASE, FPM_FOLDER) = helpers.validate_settings()
 
-        return ftd.render(self.template, root=FPM_FOLDER, base_url=BASE, **context)
+        return ftd.render(
+            self.template,
+            root=FPM_FOLDER,
+            base_url=BASE,
+            handle_processor=helpers.processor,
+            **context
+        )
 
 
 class TemplateBackend(BaseEngine):
@@ -70,7 +76,13 @@ def static():
             if content_type == "ftd":
                 context = {}
                 return HttpResponse(
-                    ftd.render(path, root=FPM_FOLDER, base_url=BASE, **context)
+                    ftd.render(
+                        path,
+                        root=FPM_FOLDER,
+                        base_url=BASE,
+                        handle_processor=helpers.processor,
+                        **context
+                    )
                 )
             return HttpResponse(bytes(content), content_type=content_type)
         except Exception as e:
@@ -79,3 +91,14 @@ def static():
 
     val = [re_path(r"^%s(?P<path>.*)$" % re.escape(BASE.lstrip("/")), view)]
     return val
+
+
+def processor(fn_or_str):
+    if isinstance(fn_or_str, str):
+        def f(fn):
+            fn.processor_name = fn_or_str
+            return fn
+        return f
+    else:
+        fn_or_str.processor_name = fn_or_str.__name__
+        return fn_or_str

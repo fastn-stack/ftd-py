@@ -1,6 +1,7 @@
 from django.core.exceptions import ImproperlyConfigured, SuspiciousFileOperation
+from django.utils.module_loading import import_string
 
-from typing import Optional
+from typing import Optional, List
 from os.path import abspath, dirname, join, normcase, sep
 
 
@@ -44,6 +45,7 @@ def validate_settings() -> (str, str):
         raise ImproperlyConfigured("DIRS must contain a single entry, found %s" % dlen)
 
     options = t.get("OPTIONS", {})
+    initialize_processors(options.get("PROCESSORS", []))
     folder = t["DIRS"][0]
 
     if not options:
@@ -85,3 +87,21 @@ def safe_join(base, *paths):
             "component ({})".format(final_path, base_path)
         )
     return final_path
+
+
+PROCESSORS = {}
+
+
+def initialize_processors(processors: List[str]):
+    for p in processors:
+        p = import_string(p)
+        PROCESSORS[p.processor_name] = p
+
+
+def processor(doc_id, section, interpreter):
+
+    name = section.header_string(doc_id, "$processor$")
+    if name in PROCESSORS:
+        return PROCESSORS[name](doc_id, section, interpreter)
+
+    raise Exception(f"{name}: unknown processor")

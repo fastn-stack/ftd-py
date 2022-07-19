@@ -154,7 +154,8 @@ def interpret(
                 if not processor_value:
                     if not handle_processor:
                         raise Exception("can not handle processor: %s" % section)
-                    processor_value = handle_processor(section)
+                    processor_value = handle_processor(id, section, interpreter)
+
                 interpreter.continue_after_processor(processor_value)
                 print("stuck_on_processor done")
 
@@ -166,3 +167,12 @@ def interpret(
 
 def file_content(root: str, path: str) -> (bytearray, str):
     return ftd_sys.get_file_content(root, path)
+
+
+def string_to_value(value: str):
+    return ftd_sys.string_to_value(value)
+
+
+def object_to_value(value: str, section, interpreter):
+    import json
+    return ftd_sys.object_to_value(json.dumps(value), section, interpreter)

@@ -4,9 +4,6 @@ from django.views.generic import FormView, TemplateView
 from django.views.decorators.csrf import csrf_exempt
 
 
-# Create your views here.
-
-
 class IndexView(TemplateView):
     template_name = "/foo/"
 
@@ -20,7 +17,10 @@ class IndexView(TemplateView):
         from django.http import HttpResponse
 
         template = loader.get_template(self.template_name)
-        return HttpResponse(template.render(self.get_context_data(), request))
+        return HttpResponse(template.render(
+            self.get_context_data(),
+            request,
+        ))
 
 
 def get_data(_):
@@ -47,3 +47,8 @@ def post_data(req: django.http.HttpRequest):
         },
         status=200,
     )
+
+
+@csrf_exempt
+def update_todo(req):
+    print(json.loads(req.body))
