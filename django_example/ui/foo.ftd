@@ -6,8 +6,6 @@
 
 -- ft.page: Hello World
 
--- ftd.text: Hello Foo
-
 -- ftd.image:
 src: $assets.files.1.jpg
 
@@ -29,26 +27,44 @@ background-color: $white
 src: $ft-assets.files.static.header.hamburger.svg
 background-color: $black
 
+;; INVOCATIONS --------------------------------------------------------
+-- ftd.text: $curr_input_status
+color: $black
+
+-- ftd.text: $curr_input_id
+color: $black
+
+-- ftd.text: $message
+color: $black
+
+-- todo_list:
+items: $items
+
+;; INITIALIZATON --------------------------------------------
+-- string curr_input_status: $input_status
+padding-vertical: 10
+
+-- string curr_input_id: $input_id
+padding-vertical: 10
+
+;; [message] initialized <- hello_world processor
 -- string message:
 $processor$: hello_world
 
 "Default Message"
 
--- ftd.text: $message
-color: $black
-
-
-
--- todo_list:
-items: $items
-
--- record todo_item:
-string task_name:
-string status:
-
+;; TODO list [items] initialized <- todo_data processor
 -- todo_item list items:
 $processor$: todo_data
 
+;; DEFINITIONS -------------------------------------------
+;; TODO record [todo_item] def <-
+-- record todo_item:
+string task_name:
+string status:
+string id:
+
+;; [todo_list] def <-
 -- ftd.column todo_list:
 todo_item list items:
 
@@ -56,14 +72,22 @@ todo_item list items:
 $loop$: $items as $item
 status: $item.status
 task_name: $item.task_name
+id: $item.id
 
+;; [Optional global input_content] def <-
 -- optional string input_status:
 $always-include$: true
 
+;; [Optional global input_id] def <-
+-- optional string input_id:
+$always-include$: true
+
+;; [Print item def] <-
 -- ftd.row print-item:
 spacing: 24
 string status:
 string task_name:
+string id:
 
 --- ftd.text: $task_name
 color: $black
@@ -74,6 +98,7 @@ color: $black
 width: 100
 
 --- ftd.input:
+;$on-focus$: $input_id=$id
 $on-change$: $input_status=$VALUE
 border-color: $black
 placeholder: Enter Status
@@ -82,6 +107,7 @@ placeholder: Enter Status
 color: $black
 $on-click$: message-host $update-status-api
 
+;; [UPDATE API OBJECT] def <-
 -- object update-status-api:
 function: http
 method: post

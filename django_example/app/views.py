@@ -50,5 +50,8 @@ def post_data(req: django.http.HttpRequest):
 
 
 @csrf_exempt
-def update_todo(req):
-    print(json.loads(req.body))
+def update_todo(req: django.http.HttpRequest):
+    body = json.loads(req.body)
+    print(f"body received = {body}")
+
+    # print(json.loads(req.body))
