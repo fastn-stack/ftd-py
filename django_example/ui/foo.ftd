@@ -28,11 +28,19 @@ src: $ft-assets.files.static.header.hamburger.svg
 background-color: $black
 
 ;; INVOCATIONS --------------------------------------------------------
--- ftd.text: $curr_input_status
+-- ftd.text: Current status
 color: $black
 
--- ftd.text: $curr_input_id
+-- ftd.text: $input_status
 color: $black
+padding-bottom: 10
+
+-- ftd.text: Current tid
+color: $black
+
+-- ftd.integer: $input_tid
+color: $black
+padding-bottom: 10
 
 -- ftd.text: $message
 color: $black
@@ -41,12 +49,6 @@ color: $black
 items: $items
 
 ;; INITIALIZATON --------------------------------------------
--- string curr_input_status: $input_status
-padding-vertical: 10
-
--- string curr_input_id: $input_id
-padding-vertical: 10
-
 ;; [message] initialized <- hello_world processor
 -- string message:
 $processor$: hello_world
@@ -58,11 +60,17 @@ $processor$: hello_world
 $processor$: todo_data
 
 ;; DEFINITIONS -------------------------------------------
+;; [input_content] def <-
+-- string input_status: no status
+
+;; [input_tid] def <-
+-- integer input_tid: -1
+
 ;; TODO record [todo_item] def <-
 -- record todo_item:
 string task_name:
 string status:
-string id:
+integer tid:
 
 ;; [todo_list] def <-
 -- ftd.column todo_list:
@@ -72,22 +80,14 @@ todo_item list items:
 $loop$: $items as $item
 status: $item.status
 task_name: $item.task_name
-id: $item.id
-
-;; [Optional global input_content] def <-
--- optional string input_status:
-$always-include$: true
-
-;; [Optional global input_id] def <-
--- optional string input_id:
-$always-include$: true
+tid: $item.tid
 
 ;; [Print item def] <-
 -- ftd.row print-item:
 spacing: 24
 string status:
 string task_name:
-string id:
+integer tid:
 
 --- ftd.text: $task_name
 color: $black
@@ -97,12 +97,15 @@ width: 300
 color: $black
 width: 100
 
+;; on-focus => UPDATE input_tid with todo_item tid
+;; on-change => UPDATE input_status with current text value
 --- ftd.input:
-;$on-focus$: $input_id=$id
+$on-focus$: $input_tid=$tid
 $on-change$: $input_status=$VALUE
 border-color: $black
 placeholder: Enter Status
 
+;; on-click => Update todo_item status with the current value in the input text-field
 --- ftd.text: Update Status
 color: $black
 $on-click$: message-host $update-status-api
@@ -113,3 +116,4 @@ function: http
 method: post
 url: /api/update-status
 status: $input_status
+tid: $input_tid
