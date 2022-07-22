@@ -4,9 +4,10 @@
 
 -- import: ft
 
--- ft.page: Hello World
+-- ft.page: TODO
 
--- ftd.image:
+;; IMAGE REMOVED
+/-- ftd.image:
 src: $assets.files.1.jpg
 
 -- ftd.color black:
@@ -16,7 +17,6 @@ dark: black
 -- ftd.color white:
 light: white
 dark: white
-
 
 -- ftd.column:
 width: fill
@@ -28,6 +28,33 @@ src: $ft-assets.files.static.header.hamburger.svg
 background-color: $black
 
 ;; INVOCATIONS --------------------------------------------------------
+-- ftd.text: Flag status
+color: $black
+
+-- ftd.boolean: $flag
+color: $black
+
+-- ftd.text: Reset status
+color: $black
+
+-- ftd.boolean: $reset_flag
+color: $black
+
+-- ftd.text: Task added successfully !!
+if: $add_flag
+color: $black
+
+-- ftd.text: Task not added yet !!
+if: not $add_flag
+color: $black
+
+-- ftd.text: Add Task status
+color: $black
+
+-- ftd.text: $add-task-status
+color: $black
+padding-bottom: 10
+
 -- ftd.text: Current status
 color: $black
 
@@ -46,9 +73,32 @@ padding-bottom: 10
 color: $black
 
 -- todo_list:
-items: $items
+if: not $flag
+items: $items1
+
+-- todo_list:
+if: $flag
+items: $items2
 
 ;; INITIALIZATON --------------------------------------------
+;; [input_content] initialized <-
+-- string input_status: no status
+
+;; [input_tid] initialized <-
+-- integer input_tid: -1
+
+;; [add-task-content] initialized <-
+-- string add-task-status: None
+
+;; [flag] initialized <- for checking api update
+-- boolean flag: false
+
+;; [add_flag] initialized <- for checking if add api works
+-- boolean add_flag: false
+
+;; [reset-flag] initialized <- to reset the todo
+-- boolean reset_flag: false
+
 ;; [message] initialized <- hello_world processor
 -- string message:
 $processor$: hello_world
@@ -56,15 +106,16 @@ $processor$: hello_world
 "Default Message"
 
 ;; TODO list [items] initialized <- todo_data processor
--- todo_item list items:
+-- todo_item list items1:
+if: not $flag
+$processor$: todo_data
+
+-- todo_item list items2:
+if: $flag
 $processor$: todo_data
 
 ;; DEFINITIONS -------------------------------------------
-;; [input_content] def <-
--- string input_status: no status
 
-;; [input_tid] def <-
--- integer input_tid: -1
 
 ;; TODO record [todo_item] def <-
 -- record todo_item:
@@ -81,6 +132,35 @@ $loop$: $items as $item
 status: $item.status
 task_name: $item.task_name
 tid: $item.tid
+
+--- add-task:
+
+;; [Add task] def <-
+-- ftd.row add-task:
+spacing: 24
+string tn_add: Nothing..
+
+--- ftd.text: Options ->
+color: $black
+width: 300
+
+--- ftd.text: RESET TODO
+color: $black
+width: 100
+$on-click$: toggle $reset_flag
+$on-blur$: toggle $reset_flag
+
+--- ftd.input:
+$on-input$: $add-task-status=$VALUE
+border-color: $black
+placeholder: Enter Task here..
+
+--- ftd.text: Add Task
+color: $black
+$on-click$: $tn_add=$add-task-status
+$on-click$: message-host $add-task-api
+$on-click$: toggle $flag
+$on-blur$: toggle $flag
 
 ;; [Print item def] <-
 -- ftd.row print-item:
@@ -100,15 +180,17 @@ width: 100
 ;; on-focus => UPDATE input_tid with todo_item tid
 ;; on-change => UPDATE input_status with current text value
 --- ftd.input:
-$on-focus$: $input_tid=$tid
-$on-change$: $input_status=$VALUE
+$on-input$: $input_status=$VALUE
 border-color: $black
 placeholder: Enter Status
 
 ;; on-click => Update todo_item status with the current value in the input text-field
 --- ftd.text: Update Status
 color: $black
+$on-mouse-enter$: $input_tid=$tid
+$on-click$: $status=$input_status
 $on-click$: message-host $update-status-api
+$on-mouse-leave$: toggle $flag
 
 ;; [UPDATE API OBJECT] def <-
 -- object update-status-api:
@@ -117,3 +199,9 @@ method: post
 url: /api/update-status
 status: $input_status
 tid: $input_tid
+
+-- object add-task-api:
+function: http
+method: post
+url: /api/add-task
+task_name: $add-task-status
