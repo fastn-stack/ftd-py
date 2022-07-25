@@ -1,6 +1,0 @@
--- import: fpm
-
--- fpm.package: ui
-base: this is base
-
--- fpm.dependency: fifthtry.github.io/doc-site as ft
