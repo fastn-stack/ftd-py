@@ -35,7 +35,7 @@ class Template:
             root=FPM_FOLDER,
             base_url=BASE,
             handle_processor=helpers.processor,
-            **context
+            **context,
         )
 
 
@@ -81,7 +81,7 @@ def static():
                         root=FPM_FOLDER,
                         base_url=BASE,
                         handle_processor=helpers.processor,
-                        **context
+                        **context,
                     )
                 )
             return HttpResponse(bytes(content), content_type=content_type)
@@ -95,9 +95,11 @@ def static():
 
 def processor(fn_or_str):
     if isinstance(fn_or_str, str):
+
         def f(fn):
             fn.processor_name = fn_or_str
             return fn
+
         return f
     else:
         fn_or_str.processor_name = fn_or_str.__name__
