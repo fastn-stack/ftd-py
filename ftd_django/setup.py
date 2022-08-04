@@ -15,6 +15,7 @@ setup(
         "Bug Tracker": "https://github.com/FifthTry/ftd-py/issues",
     },
     python_requires=">=3.6",
-    version="0.1.5",
+    version="0.1.6",
+    package_dir={"": "src"},
     install_requires=["ftd>=0.1.5"],
 )
