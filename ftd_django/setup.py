@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 with open("README.md") as f:
     long_description = f.read()
@@ -15,7 +15,8 @@ setup(
         "Bug Tracker": "https://github.com/FifthTry/ftd-py/issues",
     },
     python_requires=">=3.6",
-    version="0.1.6",
+    version="0.1.7",
     package_dir={"": "src"},
+    packages=find_packages(where="src"),
     install_requires=["ftd>=0.1.5"],
 )
