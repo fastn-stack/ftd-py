@@ -1,6 +1,6 @@
 [package]
 name = "ftd_sys"
-version = "0.1.3"
+version = "0.1.4"
 edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -11,8 +11,8 @@ crate-type = ["cdylib"]
 [dependencies]
 pyo3 = { version = "0.14", features = ["extension-module"] }
 pyo3-asyncio = { version = "0.14", features = ["tokio-runtime"] }
-fpm = { git = "https://github.com/FifthTry/fpm", rev = "161624b" }
-ftd = { git = "https://github.com/FifthTry/ftd", rev = "b89c9fd7" }
+fpm = { git = "https://github.com/FifthTry/fpm", rev = "b8589b2" }
+ftd = { git = "https://github.com/FifthTry/ftd", rev = "ea6f7ab" }
 #ftd = { path = "../../ftd" }
 #fpm = { path = "../../fpm" }
 serde = { version = "1", features = ["derive"] }

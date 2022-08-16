@@ -116,7 +116,7 @@ impl Interpreter {
             &self.config,
             &section.section,
             &self.document_id,
-            &state.tdoc(&mut Default::default()),
+            &state.tdoc(&mut Default::default(), &mut Default::default()),
         ) {
             Ok(value) => value,
             Err(e) => {
@@ -290,7 +290,7 @@ fn fpm_config(root: Option<String>, data: Option<String>) -> PyResult<Config> {
     use tokio::runtime::Runtime;
     let rt = Runtime::new().map_err(|err| py_err(&err.to_string()))?;
     rt.block_on(async {
-        let mut config = fpm::Config::read2(root, false)
+        let mut config = fpm::Config::read(root, false)
             .await
             .map(|config| Config { config })
             .map_err(|err| {
@@ -429,8 +429,9 @@ fn object_to_value(
             ));
         }
     };
-    let mut d = Default::default();
-    let doc = state.tdoc(&mut d);
+    let mut local_variables = Default::default();
+    let mut ref_local_variables = Default::default();
+    let doc = state.tdoc(&mut local_variables, &mut ref_local_variables);
     let data = &serde_json::from_str::<serde_json::Value>(&data)
         .map_err(|e| py_err(&format!("ftd-sys: object_to_value, err: {}", e)))?;
     // TODO: remove expect
