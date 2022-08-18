@@ -34,7 +34,7 @@ class Template:
             self.template,
             root=FPM_FOLDER,
             base_url=BASE,
-            handle_processor=helpers.processor,
+            handle_processor=helpers.processor(request),
             **context,
         )
 

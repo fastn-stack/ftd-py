@@ -98,10 +98,12 @@ def initialize_processors(processors: List[str]):
         PROCESSORS[p.processor_name] = p
 
 
-def processor(doc_id, section, interpreter):
+def processor(request):
+    def p(doc_id, section, interpreter):
 
-    name = section.header_string(doc_id, "$processor$")
-    if name in PROCESSORS:
-        return PROCESSORS[name](doc_id, section, interpreter)
+        name = section.header_string(doc_id, "$processor$")
+        if name in PROCESSORS:
+            return PROCESSORS[name](request, doc_id, section, interpreter)
 
-    raise Exception(f"{name}: unknown processor")
+        raise Exception(f"{name}: unknown processor")
+    return p
